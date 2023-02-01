@@ -1,1 +1,9 @@
+.gitignore
+.idea
+
+#Data
+Data
+
+#Jupyter notebook checkpoints
+
 
