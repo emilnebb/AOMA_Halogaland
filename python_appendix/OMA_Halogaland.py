@@ -17,11 +17,15 @@ for i in range(np.shape(anodes)[0]):
     files.append(TdmsFile.read(path + anodes[i] + '_' + fileToRead)) #tdms read is utilized here-> whole file are stored "in-memory", can be done more efficiently with using TdmsFile.open
     print('File nr. ' + str(i+1) + ' done.')
 #%% Extracting chosen interval of prosessed data from all accelerometers
+
+print(type(files[0]))
+
 interval = 0
 fs = 2
 t_master = ts.time_master(files, ['W03', 'W04', 'W05', 'xx', 'W07', 'xx', 'xx', 'W10'])
 # Finding shape to initialize matrices
 _, acc_1y, _, _, _, _ = gd.readAcc('A03', files[0], 30, t_master, fs)
+print(type(acc_1y))
 
 # Saving accelerations from interval nr. interval from all accelerometers
 acc_x_all = np.zeros([np.shape(acc_1y)[1], np.shape(files)[0]*2])
