@@ -6,6 +6,9 @@ import datetime
 g = 9.82
 
 class Dataloader:
+    """
+    A dataloader specified for the data logged at Hålogaland bridge.
+    """
 
     def __init__(self, path: str):
 
