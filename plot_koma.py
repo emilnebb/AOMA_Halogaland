@@ -31,11 +31,14 @@ def plot_stab_from_KOMA(sorted_freqs,sorted_orders,*args,lambd_stab=None,stab_or
     
     """
 
+    """
     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
     if not xmax: 
         xmax=np.amax(sorted_freqs[-1])*1.2
     if not xmin: 
         xmin=np.amin(sorted_freqs[0])*0.8
+    """
+
     
 
     # Make an arrays of colors. 

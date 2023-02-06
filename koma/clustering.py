@@ -19,7 +19,7 @@ def crossdiff(arr, relative=False, allow_negatives=False):
     arr : double
         array to provide cross difference of (n_points long)
     relative : False, optional
-        output relative difference or absolute difference
+        results relative difference or absolute difference
     allow_negatives : False, optional
         whether or not to allow negative difference
 
@@ -275,7 +275,7 @@ class PoleClusterer:
 
 def group_clusters(lambd_used, phi_used, order_stab_used, group_ixs, all_single_ixs, probs):
     '''
-    Group the output of PoleClusterer.postprocess()
+    Group the results of PoleClusterer.postprocess()
 
     Arguments
     ---------------------------
@@ -334,7 +334,7 @@ def group_clusters(lambd_used, phi_used, order_stab_used, group_ixs, all_single_
 
 def group_array(arr, group_ixs, axis=0):
     '''
-    Group a single output array of PoleClusterer.postprocess() based on group indices.
+    Group a single results array of PoleClusterer.postprocess() based on group indices.
 
     Arguments
     ---------------------------

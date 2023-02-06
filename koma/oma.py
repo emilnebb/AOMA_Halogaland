@@ -306,7 +306,7 @@ algorithm='shift', showinfo=True, balance=True, return_A=False):
     balance : True, optional
         whether or not to conduct balancing to the cross-correlation matrices prior to matrix operations (Cholesky and SVD)
     return_A : False, optional
-        whether or not to output the state matrix (discrete) from the last order evaluated
+        whether or not to results the state matrix (discrete) from the last order evaluated
 
     Returns
     ---------------------------
