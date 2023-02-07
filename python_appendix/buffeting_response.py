@@ -133,7 +133,7 @@ def RMS(U, I_u, I_w, Au, Aw, Ku, Kw, x_r, spectra_type, filename):
         ms[2, i] = np.trapz(S_rdd[2, :], omega_ref)
     rms_tot = np.sqrt(np.array([sum(ms[0]), sum(ms[1]), sum(ms[2])]))
       
-    # Saving results
+    # Saving vibration_data
     save_path = os.getcwd()+ '\Results' + '\\Predicted'
     file_data = np.array([U, rms_tot[0], rms_tot[1], rms_tot[2]]).T
     with open(save_path + filename + '.csv', 'a', newline='') as file:
