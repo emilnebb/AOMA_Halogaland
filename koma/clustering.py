@@ -19,7 +19,7 @@ def crossdiff(arr, relative=False, allow_negatives=False):
     arr : double
         array to provide cross difference of (n_points long)
     relative : False, optional
-        results relative difference or absolute difference
+        vibration_data relative difference or absolute difference
     allow_negatives : False, optional
         whether or not to allow negative difference
 
@@ -249,7 +249,7 @@ class PoleClusterer:
         labels = np.array([np.where(sort_ix==label)[0][0] for label in labels_unsorted]).flatten()
         probs = np.hstack([probs_unsorted[labels==label] for label in range(0, n_labels)])
 
-        # Remove double results (more poles at same order within same cluster)
+        # Remove double vibration_data (more poles at same order within same cluster)
         keep_single_ix = [None]*n_labels
         for label in range(0, n_labels):           
             relevant_orders = self.order[keep_ix][labels==label]
@@ -275,7 +275,7 @@ class PoleClusterer:
 
 def group_clusters(lambd_used, phi_used, order_stab_used, group_ixs, all_single_ixs, probs):
     '''
-    Group the results of PoleClusterer.postprocess()
+    Group the vibration_data of PoleClusterer.postprocess()
 
     Arguments
     ---------------------------
@@ -334,7 +334,7 @@ def group_clusters(lambd_used, phi_used, order_stab_used, group_ixs, all_single_
 
 def group_array(arr, group_ixs, axis=0):
     '''
-    Group a single results array of PoleClusterer.postprocess() based on group indices.
+    Group a single vibration_data array of PoleClusterer.postprocess() based on group indices.
 
     Arguments
     ---------------------------

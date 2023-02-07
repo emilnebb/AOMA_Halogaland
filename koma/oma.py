@@ -306,7 +306,7 @@ algorithm='shift', showinfo=True, balance=True, return_A=False):
     balance : True, optional
         whether or not to conduct balancing to the cross-correlation matrices prior to matrix operations (Cholesky and SVD)
     return_A : False, optional
-        whether or not to results the state matrix (discrete) from the last order evaluated
+        whether or not to vibration_data the state matrix (discrete) from the last order evaluated
 
     Returns
     ---------------------------
@@ -358,7 +358,7 @@ algorithm='shift', showinfo=True, balance=True, return_A=False):
         print('> Establishing weighting matrices')
         print('  >> Weighting requested: %s' % (weighting.upper()))
 
-    if weighting is 'cva':  #[2] used, [1] results in ill-conditioning issues
+    if weighting is 'cva':  #[2] used, [1] vibration_data in ill-conditioning issues
         try:
             if showinfo:
                 print('  >> Establishing R+ and R-')
@@ -430,7 +430,7 @@ def find_stable_poles(lambd, phi, orders, s, stabcrit={'freq': 0.05, 'damping': 
                       valid_range={'freq': [0, np.inf], 'damping':[0, np.inf]}, indicator='freq', 
                       return_both_conjugates=False):
     """
-    Post-processing of Cov-SSI results, to establish modes (stable poles) from all poles.
+    Post-processing of Cov-SSI vibration_data, to establish modes (stable poles) from all poles.
 
     Arguments
     ---------------------------

@@ -2,7 +2,7 @@
 ##############################################
 Modal post-processing module
 ##############################################
-All functions related to the processing of results from OMA methods or in general.
+All functions related to the processing of vibration_data from OMA methods or in general.
 """
 
 

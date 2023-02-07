@@ -2,7 +2,7 @@
 ##############################################
 Visualization module
 ##############################################
-All functions related to the plotting of results from OMA methods.
+All functions related to the plotting of vibration_data from OMA methods.
 """
 import plotly.graph_objects as go 
 from plotly.subplots import make_subplots
@@ -12,7 +12,7 @@ import numpy as np
 def stabplot(lambd, orders, phi=None, model=None, freq_range=None, frequency_unit='rad/s', damped_freq=False, psd_freq=None, psd_y=None, psd_plot_scale='log', 
     renderer=None, pole_settings=None, selected_pole_settings=None, to_clipboard='none', return_ix=False):
     """
-    Generate plotly-based stabilization plot from results from find_stable_poles. This is still beta!
+    Generate plotly-based stabilization plot from vibration_data from find_stable_poles. This is still beta!
 
     Arguments
     ---------------------------
@@ -36,7 +36,7 @@ def stabplot(lambd, orders, phi=None, model=None, freq_range=None, frequency_uni
         [not yet implemented] function values of plot to overlay, typically spectrum of data
     psd_plot_scale: {'log', 'linear'}, optional
         how to plot the overlaid PSD (linear or logarithmic y-scale)
-    renderer : None (render no plot - manually render results object), optional
+    renderer : None (render no plot - manually render vibration_data object), optional
         how to plot figure, refer plotly documentation for details 
         ('svg', 'browser', 'notebook', 'notebook_connected', are examples - 
         use 'default' to give default and None to avoid plot)
