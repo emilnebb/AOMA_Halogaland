@@ -16,7 +16,7 @@ def generate_data(num_stories: int, path: str):
     Saves data to file.
     """
     # Create a shear frame
-    sf = strid.utils.ShearFrame(num_stories, 1e3, 1e7)  # Defining 8 storeys here
+    sf = strid.utils.ShearFrame(num_stories, 1e3, 1e4)  # Defining 8 storeys here
     sf.set_rayleigh_damping_matrix([sf.get_natural_frequency(1), sf.get_natural_frequency(sf.n)], [.05] * 2)
 
     # Determine the time discretization and period
