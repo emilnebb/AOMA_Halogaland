@@ -14,7 +14,7 @@ def filter_data(s, Wn, N, Fs, ftype):
     Takes a signal and applies a filter using Butterworth filter of order N.
     '''
     #Normalizes the cutoff frequency, with 1 being the Nyquist frequency 
-    normWn = 2*Wn/Fs  
+    normWn = 2*Wn/Fs
     #Filter coefficients 
     sos = signal.butter(N, normWn, output='sos', btype=ftype) 
     #Forward-backward digital filter
