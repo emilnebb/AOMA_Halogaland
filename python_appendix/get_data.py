@@ -1,9 +1,9 @@
 import numpy as np
-import measurementFunctions as mf
-import lowPass_DownSample as ld
-import clean_data as cd
-import windCharacteristics as wc
-import time_synchronisation as ts
+from python_appendix import measurementFunctions as mf
+from python_appendix import lowPass_DownSample as ld
+from python_appendix import clean_data as cd
+from python_appendix import windCharacteristics as wc
+from python_appendix import time_synchronisation as ts
 
 def readAcc(anodeName, tdmsFile, interval, t_master, downFreq):
     """
