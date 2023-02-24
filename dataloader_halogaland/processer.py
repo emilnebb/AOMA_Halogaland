@@ -6,11 +6,12 @@ def low_pass(old_signal: np.ndarray, sampling_frequency, cutoff_frequency, filte
     Apply Butterworth filter as lowpass filter
     :param signal: np.ndarray of signal
     :param sampling_frequency: int sampling frequency of the signal
-    :param cutoff_frequency: int cutoff frequency, which frequency of higher content will be removed
+    :param cutoff_frequency: int cutoff frequency in Hz, which frequency of higher content will be removed
     :param filter_order: int hyperparameter to the Butterworth filter
     :return: np.ndarray filtered signal
     """
-    sos = signal.butter(filter_order, cutoff_frequency, "low",
+
+    sos = signal.butter(filter_order, cutoff_frequency, btype='lowpass',
                         fs=sampling_frequency, output='sos')
 
     filtered_signal = signal.sosfilt(sos, old_signal)
