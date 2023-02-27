@@ -2,12 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from nptdms import TdmsFile #docs: https://nptdms.readthedocs.io/en/stable/index.html
 import datetime
+import h5py
+from dataloader_halogaland.processer import low_pass, downsample
 
 g = 9.82
 
-class Dataloader:
+class TDMS_dataloader:
     """
-    A dataloader specified for the data logged at Hålogaland bridge.
+    A dataloader specified for the data logged at Hålogaland bridge, loaded from TDMS file format.
     """
 
     def __init__(self, path: str):
@@ -67,3 +69,58 @@ class Dataloader:
             strain_dict[sensors[i]] = strain[strainName + '-' + sensors[i]][:] / conversion_factor
 
         return strain_dict
+
+class HDF5_dataloader:
+    """
+    A dataloader specified for the data logged at Hålogaland bridge, loaded from HDF5 file format.
+    """
+
+    def __init__(self, path: str):
+
+        self.path = path
+        self.periods = None
+        self.data_types = None
+        self.acceleration_sensors = ['A03-1', 'A04-1', 'A05-1', 'A06-1', 'A07-1', 'A08-1', 'A09-1', 'A10-1', 'A03-2',
+                                     'A04-2', 'A05-2', 'A06-2', 'A07-2', 'A08-2', 'A09-2', 'A10-2']
+        self.strain_sensors = None
+        self.hdf5_file = None
+        self.hdf5_file = h5py.File(self.path, 'r')
+        self.periods = list(self.hdf5_file.keys())
+        self.data_types = list(self.hdf5_file[self.periods[0]].keys())
+
+        #self.acceleration_sensors = list(self.hdf5_file[self.periods[0]][self.data_types[0]].keys())
+        self.strain_sensors = list(self.hdf5_file[self.periods[0]][self.data_types[0]].keys())
+
+    def load_acceleration(self, period: str, sensor: str, axis: str, preprosess=False, cutoff_frequency = None, filter_order=None):
+        # TODO: write function description
+
+        acc_data = self.hdf5_file[period][self.data_types[0]][sensor][axis]
+
+        if preprosess:
+            sampling_rate = self.hdf5_file[period][self.data_types[0]][sensor].attrs['samplerate']
+            filtered_acc = low_pass(acc_data - np.mean(acc_data), sampling_rate, cutoff_frequency, filter_order)
+            acc_data = downsample(sampling_rate, filtered_acc, cutoff_frequency*2)
+
+        return acc_data
+
+    def load_all_acceleration_data(self, period: str, preprosess=False, cutoff_frequency = None, filter_order=None):
+        #TODO: write function description
+
+        acc_example = self.load_acceleration(self.periods[0], self.acceleration_sensors[0], 'x', preprosess, cutoff_frequency, filter_order)
+
+        #acc_matrix = np.zeros((len(acc_example), 48))
+        #axis = ['x', 'y', 'z']
+        acc_x = np.zeros((len(acc_example), 16))
+        acc_y = np.zeros((len(acc_example), 16))
+        acc_z = np.zeros((len(acc_example), 16))
+
+        counter = 0
+        for sensor in self.acceleration_sensors:
+            acc_x[:, counter] = self.load_acceleration(period, sensor, 'x', preprosess, cutoff_frequency, filter_order)
+            acc_y[:, counter] = self.load_acceleration(period, sensor, 'y', preprosess, cutoff_frequency, filter_order)
+            acc_z[:, counter] = self.load_acceleration(period, sensor, 'z', preprosess, cutoff_frequency, filter_order)
+            counter += 1
+
+        acc_matrix = np.concatenate((acc_x, acc_y, acc_z), axis=1)
+
+        return acc_matrix
