@@ -80,16 +80,21 @@ class HDF5_dataloader:
         self.path = path
         self.periods = None
         self.data_types = None
-        self.acceleration_sensors = ['A03-1', 'A04-1', 'A05-1', 'A06-1', 'A07-1', 'A08-1', 'A09-1', 'A10-1', 'A03-2',
-                                     'A04-2', 'A05-2', 'A06-2', 'A07-2', 'A08-2', 'A09-2', 'A10-2']
-        self.strain_sensors = None
         self.hdf5_file = None
         self.hdf5_file = h5py.File(self.path, 'r')
         self.periods = list(self.hdf5_file.keys())
         self.data_types = list(self.hdf5_file[self.periods[0]].keys())
-
-        #self.acceleration_sensors = list(self.hdf5_file[self.periods[0]][self.data_types[0]].keys())
+        self.acceleration_sensors = list(self.hdf5_file[self.periods[0]][self.data_types[0]].keys())
         self.strain_sensors = list(self.hdf5_file[self.periods[0]][self.data_types[0]].keys())
+
+        if 'A01-1' in self.acceleration_sensors: self.acceleration_sensors.remove('A01-1')
+        if 'A06-3' in self.acceleration_sensors: self.acceleration_sensors.remove('A06-3')
+        if 'A06-4' in self.acceleration_sensors: self.acceleration_sensors.remove('A06-4')
+        if 'A08-3' in self.acceleration_sensors: self.acceleration_sensors.remove('A08-3')
+        if 'A08-4' in self.acceleration_sensors: self.acceleration_sensors.remove('A08-4')
+        if 'A11-1' in self.acceleration_sensors: self.acceleration_sensors.remove('A11-1')
+
+        print("Available accelerometers: " + str(self.acceleration_sensors))
 
     def load_acceleration(self, period: str, sensor: str, axis: str, preprosess=False, cutoff_frequency = None, filter_order=None):
         # TODO: write function description
@@ -98,7 +103,7 @@ class HDF5_dataloader:
 
         if preprosess:
             sampling_rate = self.hdf5_file[period][self.data_types[0]][sensor].attrs['samplerate']
-            filtered_acc = low_pass(acc_data - np.mean(acc_data), sampling_rate, cutoff_frequency, filter_order)
+            filtered_acc = low_pass(acc_data , sampling_rate, cutoff_frequency, filter_order)
             acc_data = downsample(sampling_rate, filtered_acc, cutoff_frequency*2)
 
         return acc_data
@@ -110,9 +115,9 @@ class HDF5_dataloader:
 
         #acc_matrix = np.zeros((len(acc_example), 48))
         #axis = ['x', 'y', 'z']
-        acc_x = np.zeros((len(acc_example), 16))
-        acc_y = np.zeros((len(acc_example), 16))
-        acc_z = np.zeros((len(acc_example), 16))
+        acc_x = np.zeros((len(acc_example), len(self.acceleration_sensors)))
+        acc_y = np.zeros((len(acc_example), len(self.acceleration_sensors)))
+        acc_z = np.zeros((len(acc_example), len(self.acceleration_sensors)))
 
         counter = 0
         for sensor in self.acceleration_sensors:
