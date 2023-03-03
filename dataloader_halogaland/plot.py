@@ -1,10 +1,18 @@
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
 import colordict
 color_values = list(colordict.ColorDict(norm=1).values())
 
 def welch_plot(acc, sampling_frequency, Ndivisions):
+    """
+    Creates a Power Spectral Density plot of the input data estimated by Welch's method.
+    :param acc: acceleration data, 1d np.array.
+    :param sampling_frequency: int
+    :param Ndivisions:int
+    :return:
+    """
 
     Nwindow = np.ceil(len(acc) / Ndivisions)  # Length of window/segment
 
@@ -27,6 +35,20 @@ def welch_plot(acc, sampling_frequency, Ndivisions):
 
 def stabilization_diagram(acceleration, sampling_frequency, Ndivisions, frequencies, orders,
                           all_freqs = None, all_orders = None):
+    """
+    Creates a stabilization diagram with clustered poles labeled with the same color.
+    Optional takes the discarded poles and plots them as grey dots in the stabilization diagram.
+    Frequency content of the acceleration data is decomposed into horizontal, vertical and tortional
+    directions.
+    :param acceleration: 2d np.array of acceleration data
+    :param sampling_frequency: int
+    :param Ndivisions: int
+    :param frequencies: frequencies of the clustered poles, 2d np.array
+    :param orders: orders of the clustered poles, 2d np.array
+    :param all_freqs: frequecies of all poles created from cov-SSI, 1d np.array
+    :param all_orders: orders of all poles creaed from cov-SSI, 1d np.array
+    :return: figure including the stabilization diagram
+    """
 
     fig, ax =plt.subplots(figsize=(14, 5), dpi=300)
 
@@ -79,5 +101,29 @@ def stabilization_diagram(acceleration, sampling_frequency, Ndivisions, frequenc
     plt.legend()
     plt.grid()
 
-
     return fig
+
+class BridgeModelHalogaland:
+
+    def __init__(self):
+        B = 18.6
+        sensor_locations_x = np.array([-580, -420, -300, -180, -100, 0, 100, 260, 420, 580])
+        x = np.vstack((sensor_locations_x, sensor_locations_x))
+        y = np.vstack((np.zeros_like(sensor_locations_x), np.ones_like(sensor_locations_x)*B))
+        z = np.ones_like(y)*30
+        tower1_cordinates = np.array([[[-580, -580, -580], [-580, -580, -580]],
+                                      [[0, 0, B/2], [B, B, B/2]],
+                                      [[0, 30, 170], [0, 30, 170]]])
+        tower2_cordinates = np.array([[[580, 580, 580], [580, 580, 580]],
+                                      [[0, 0, B / 2], [B, B, B / 2]],
+                                      [[0, 30, 170], [0, 30, 170]]])
+
+        base_figure = plt.figure(figsize=(14, 5), dpi=300)
+        ax = base_figure.add_subplot(projection='3d')
+        ax.plot_wireframe(x, y, z, rstride=1, cstride=1)
+        ax.plot_wireframe(tower1_cordinates[0,:,:], tower1_cordinates[1,:,:], tower1_cordinates[2,:,:])
+        ax.plot_wireframe(tower2_cordinates[0, :, :], tower2_cordinates[1, :, :], tower2_cordinates[2, :, :])
+        plt.show()
+
+    def show_underformed_geometry(self):
+        plt.show()
