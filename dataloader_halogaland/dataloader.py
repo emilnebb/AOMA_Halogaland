@@ -83,16 +83,18 @@ class HDF5_dataloader:
         self.hdf5_file = None
         self.hdf5_file = h5py.File(self.path, 'r')
         self.periods = list(self.hdf5_file.keys())
-        self.data_types = list(self.hdf5_file[self.periods[0]].keys())
-        self.acceleration_sensors = list(self.hdf5_file[self.periods[0]][self.data_types[0]].keys())
-        self.strain_sensors = list(self.hdf5_file[self.periods[0]][self.data_types[0]].keys())
+        self.data_types = list(self.hdf5_file[self.periods[10]].keys())
+        self.acceleration_sensors = list(self.hdf5_file[self.periods[10]][self.data_types[0]].keys())
+        self.strain_sensors = list(self.hdf5_file[self.periods[10]][self.data_types[0]].keys())
 
+        """
         if 'A01-1' in self.acceleration_sensors: self.acceleration_sensors.remove('A01-1')
         if 'A06-3' in self.acceleration_sensors: self.acceleration_sensors.remove('A06-3')
         if 'A06-4' in self.acceleration_sensors: self.acceleration_sensors.remove('A06-4')
         if 'A08-3' in self.acceleration_sensors: self.acceleration_sensors.remove('A08-3')
         if 'A08-4' in self.acceleration_sensors: self.acceleration_sensors.remove('A08-4')
         if 'A11-1' in self.acceleration_sensors: self.acceleration_sensors.remove('A11-1')
+        """
 
         print("Available accelerometers: " + str(self.acceleration_sensors))
 
@@ -111,7 +113,7 @@ class HDF5_dataloader:
     def load_all_acceleration_data(self, period: str, preprosess=False, cutoff_frequency = None, filter_order=None):
         #TODO: write function description
 
-        acc_example = self.load_acceleration(self.periods[0], self.acceleration_sensors[0], 'x', preprosess, cutoff_frequency, filter_order)
+        acc_example = self.load_acceleration(self.periods[10], self.acceleration_sensors[0], 'x', preprosess, cutoff_frequency, filter_order)
 
         #acc_matrix = np.zeros((len(acc_example), 48))
         #axis = ['x', 'y', 'z']
