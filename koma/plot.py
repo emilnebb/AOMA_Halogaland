@@ -38,7 +38,7 @@ def stabplot(lambd, orders, phi=None, model=None, freq_range=None, frequency_uni
         how to plot the overlaid PSD (linear or logarithmic y-scale)
     renderer : None (render no plot - manually render vibration_data object), optional
         how to plot figure, refer plotly documentation for details 
-        ('svg', 'browser', 'notebook', 'notebook_connected', are examples - 
+        ('svg', 'browser', 'notebook', 'notebook_connected', are AOMA -
         use 'default' to give default and None to avoid plot)
     to_clipboard : {'df', 'ix', 'none'}, optional
         update clipboard every time a pole is added, keeping selected indices or table

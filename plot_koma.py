@@ -120,7 +120,7 @@ def plot_stab_from_KOMA(sorted_freqs,sorted_orders,*args,lambd_stab=None,stab_or
     axes.legend()
     axes.set_xlim(xmin,xmax)
     axes.set_ylabel('Modal order')
-    axes.set_xlabel('Frequencies [rad/s]')
+    axes.set_xlabel('Frequencies [Hz]')
     plt.tight_layout() 
       
     return figur_h    

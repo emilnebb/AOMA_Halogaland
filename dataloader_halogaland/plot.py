@@ -105,12 +105,16 @@ def stabilization_diagram(acceleration, sampling_frequency, Ndivisions, frequenc
 
 class BridgeModelHalogaland:
 
-    def __init__(self):
+    def __init__(self, eigenfrequencies=None, modeshapes=None):
+        self.frequencies = eigenfrequencies
+        self.modeshapes = modeshapes
+
         B = 18.6
         sensor_locations_x = np.array([-580, -420, -300, -180, -100, 0, 100, 260, 420, 580])
         x = np.vstack((sensor_locations_x, sensor_locations_x))
         y = np.vstack((np.zeros_like(sensor_locations_x), np.ones_like(sensor_locations_x)*B))
-        z = np.ones_like(y)*30
+        z = np.array([[30, 33.8, 35.8, 37.9, 39.3, 40, 39.3, 36.5, 33.8, 30],
+                      [30, 33.8, 35.8, 37.9, 39.3, 40, 39.3, 36.5, 33.8, 30]])
         tower1_cordinates = np.array([[[-580, -580, -580], [-580, -580, -580]],
                                       [[0, 0, B/2], [B, B, B/2]],
                                       [[0, 30, 170], [0, 30, 170]]])
@@ -118,12 +122,17 @@ class BridgeModelHalogaland:
                                       [[0, 0, B / 2], [B, B, B / 2]],
                                       [[0, 30, 170], [0, 30, 170]]])
 
-        base_figure = plt.figure(figsize=(14, 5), dpi=300)
-        ax = base_figure.add_subplot(projection='3d')
-        ax.plot_wireframe(x, y, z, rstride=1, cstride=1)
-        ax.plot_wireframe(tower1_cordinates[0,:,:], tower1_cordinates[1,:,:], tower1_cordinates[2,:,:])
-        ax.plot_wireframe(tower2_cordinates[0, :, :], tower2_cordinates[1, :, :], tower2_cordinates[2, :, :])
-        plt.show()
+        self.base_figure = plt.figure(figsize=(14, 5), dpi=700)
+        ax = self.base_figure.add_subplot(projection='3d')
+        ax.plot_wireframe(x, y, z, rstride=1, cstride=1, lw=0.4, color='black')
+        ax.plot_wireframe(tower1_cordinates[0,:,:], tower1_cordinates[1,:,:], tower1_cordinates[2,:,:], lw=0.5, color='black')
+        ax.plot_wireframe(tower2_cordinates[0, :, :], tower2_cordinates[1, :, :], tower2_cordinates[2, :, :], lw=0.5, color='black')
+        ax.axis('equal')
+        #ax.set(xlim=(-600, 600), ylim=(-2, 20))
+
 
     def show_underformed_geometry(self):
-        plt.show()
+        self.base_figure.show()
+
+    def get_figure(self):
+        return self.base_figure
