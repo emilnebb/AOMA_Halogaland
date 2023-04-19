@@ -3,7 +3,7 @@
 
 #Data
 Data
-AOMA/results
+src/AOMA/Numerical_example/results
 src/AOMA/Numerical_example/vibration_data
 #Jupyter notebook checkpoints
 
@@ -11,5 +11,5 @@ src/AOMA/Numerical_example/vibration_data
 #Packages
 
 #Images
-AOMA/plots
+src/AOMA/plots
 src/data_exploration/spectrum
