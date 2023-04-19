@@ -3,13 +3,13 @@
 
 #Data
 Data
-examples/results
-examples/vibration_data
+AOMA/results
+AOMA/vibration_data
 #Jupyter notebook checkpoints
 
 
 #Packages
 
 #Images
-examples/plots
-data_exploration/spectrum
+AOMA/plots
+src/data_exploration/spectrum
