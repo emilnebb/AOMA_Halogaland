@@ -4,7 +4,7 @@
 #Data
 Data
 AOMA/results
-AOMA/vibration_data
+src/AOMA/Numerical_example/vibration_data
 #Jupyter notebook checkpoints
 
 
