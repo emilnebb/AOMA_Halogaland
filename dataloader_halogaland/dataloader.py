@@ -75,19 +75,25 @@ class HDF5_dataloader:
     A dataloader specified for the data logged at Hålogaland bridge, loaded from HDF5 file format.
     """
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, bridgedeck_only: bool):
 
         self.path = path
         self.data_types = None
         self.hdf5_file = None
         self.hdf5_file = h5py.File(self.path, 'r')
         self.periods = list(self.hdf5_file.keys())
-        self.data_types = list(self.hdf5_file[self.periods[10]].keys())
+        self.data_types = list(self.hdf5_file[self.periods[0]].keys())
+
+        if bridgedeck_only:
+            self.acceleration_sensors = ['A03-1', 'A03-2', 'A04-1', 'A04-2', 'A05-1', 'A05-2', 'A06-1', 'A06-2',
+                                         'A07-1', 'A07-2', 'A08-1', 'A08-2', 'A09-1',
+                                         'A09-2', 'A10-1', 'A10-2']  # bridge deck only
+        else:
+            self.acceleration_sensors = ['A01-1', 'A03-1', 'A03-2', 'A04-1', 'A04-2', 'A05-1', 'A05-2', 'A06-1', 'A06-2',
+                                         'A06-3', 'A06-4', 'A07-1', 'A07-2', 'A08-1', 'A08-2', 'A08-3', 'A08-4', 'A09-1',
+                                         'A09-2', 'A10-1', 'A10-2', 'A11-1'] # all acc-sensors
         #self.acceleration_sensors = list(self.hdf5_file[self.periods[10]][self.data_types[0]].keys())
-        self.acceleration_sensors = ['A01-1', 'A03-1', 'A03-2', 'A04-1', 'A04-2', 'A05-1', 'A05-2', 'A06-1', 'A06-2',
-                                     'A06-3', 'A06-4', 'A07-1', 'A07-2', 'A08-1', 'A08-2', 'A08-3', 'A08-4', 'A09-1',
-                                     'A09-2', 'A10-1', 'A10-2', 'A11-1']
-        self.strain_sensors = list(self.hdf5_file[self.periods[12]][self.data_types[0]].keys())
+        #self.strain_sensors = list(self.hdf5_file[self.periods[12]][self.data_types[0]].keys())
 
         """
         if 'A01-1' in self.acceleration_sensors: self.acceleration_sensors.remove('A01-1')
@@ -98,7 +104,7 @@ class HDF5_dataloader:
         if 'A11-1' in self.acceleration_sensors: self.acceleration_sensors.remove('A11-1')
         """
 
-        print("Available accelerometers: " + str(self.acceleration_sensors))
+        #print("Available accelerometers: " + str(self.acceleration_sensors))
 
     def load_acceleration(self, period: str, sensor: str, axis: str, preprosess=False, cutoff_frequency = None, filter_order=None):
         # TODO: write function description
@@ -134,6 +140,10 @@ class HDF5_dataloader:
             acc_z[:, counter] = self.load_acceleration(period, sensor, 'z', preprosess, cutoff_frequency, filter_order)
             counter += 1
 
+        print("X-vector shape: " + str(acc_x.shape))
+        print("Y-vector shape: " + str(acc_y.shape))
+        print("Z-vector shape: " + str(acc_z.shape))
         acc_matrix = np.concatenate((acc_x, acc_y, acc_z), axis=1)
+        print("Total-vector shape: " + str(acc_matrix.shape))
 
         return acc_matrix
