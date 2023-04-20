@@ -140,10 +140,10 @@ class HDF5_dataloader:
             acc_z[:, counter] = self.load_acceleration(period, sensor, 'z', preprosess, cutoff_frequency, filter_order)
             counter += 1
 
-        print("X-vector shape: " + str(acc_x.shape))
-        print("Y-vector shape: " + str(acc_y.shape))
-        print("Z-vector shape: " + str(acc_z.shape))
+        #print("X-vector shape: " + str(acc_x.shape))
+        #print("Y-vector shape: " + str(acc_y.shape))
+        #print("Z-vector shape: " + str(acc_z.shape))
         acc_matrix = np.concatenate((acc_x, acc_y, acc_z), axis=1)
-        print("Total-vector shape: " + str(acc_matrix.shape))
+        #print("Total-vector shape: " + str(acc_matrix.shape))
 
         return acc_matrix
