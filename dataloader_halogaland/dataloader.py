@@ -92,17 +92,12 @@ class HDF5_dataloader:
             self.acceleration_sensors = ['A01-1', 'A03-1', 'A03-2', 'A04-1', 'A04-2', 'A05-1', 'A05-2', 'A06-1', 'A06-2',
                                          'A06-3', 'A06-4', 'A07-1', 'A07-2', 'A08-1', 'A08-2', 'A08-3', 'A08-4', 'A09-1',
                                          'A09-2', 'A10-1', 'A10-2', 'A11-1'] # all acc-sensors
+
         #self.acceleration_sensors = list(self.hdf5_file[self.periods[10]][self.data_types[0]].keys())
         #self.strain_sensors = list(self.hdf5_file[self.periods[12]][self.data_types[0]].keys())
 
-        """
-        if 'A01-1' in self.acceleration_sensors: self.acceleration_sensors.remove('A01-1')
-        if 'A06-3' in self.acceleration_sensors: self.acceleration_sensors.remove('A06-3')
-        if 'A06-4' in self.acceleration_sensors: self.acceleration_sensors.remove('A06-4')
-        if 'A08-3' in self.acceleration_sensors: self.acceleration_sensors.remove('A08-3')
-        if 'A08-4' in self.acceleration_sensors: self.acceleration_sensors.remove('A08-4')
-        if 'A11-1' in self.acceleration_sensors: self.acceleration_sensors.remove('A11-1')
-        """
+        self.wind_sensors = ['W03-7-1', 'W04-15-1', 'W05-17-1', 'W05-18-1', 'W05-19-1', 'W05-19-2', 'W07-28-1',
+                             'W10-45-1', 'W10-47-1', 'W10-49-1']
 
         #print("Available accelerometers: " + str(self.acceleration_sensors))
 
@@ -147,3 +142,29 @@ class HDF5_dataloader:
         #print("Total-vector shape: " + str(acc_matrix.shape))
 
         return acc_matrix
+
+    def load_wind(self, period: str, sensor: str):
+        #TODO: write function descritpion
+
+        #Wind measurements has a 32 Hz sampling rate
+
+        wind_data = np.array(self.hdf5_file[period]['wind'][sensor]['magnitude'])
+
+        return wind_data
+
+    def load_wind_stat_data(self, period: str, timeseries_length: int, timeseries_num: int):
+
+        # Check if all channels are included
+        if not set(self.wind_sensors).issubset(list(self.hdf5_file[period]['wind'].keys())):
+            return False
+
+        #Make an assumption that wind sensor at mid span of the bridge makes up a fairly good representation
+        #of the overall wind magnitude along the bridge span
+
+        all_wind_data = self.load_wind(period, 'W07-28-1')
+
+        time_series_wind_data = all_wind_data[timeseries_num*timeseries_length*32*60:(timeseries_num+1)*timeseries_length*32*60]
+        mean_wind_speed = np.mean(time_series_wind_data)
+        max_wind_speed = np.max(time_series_wind_data)
+
+        return mean_wind_speed, max_wind_speed
