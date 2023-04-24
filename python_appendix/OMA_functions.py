@@ -23,7 +23,7 @@ def modalParamOMA(data, fs, orders, i, s, stabcrit={'freq': 0.05, 'damping': 0.1
     Function for computing Cov-SSI to obtain modal parameters from stable poles and stabilization plot
     """   
     ## Find all complex poles and eigenvectors for all orders
-    lambd, phi = oma.covssi(data=data, fs=fs, i=i, orders=orders, weighting='none', matrix_type='hankel', algorithm='shift', showinfo=True, balance=True)    
+    lambd, phi = oma.covssi(data=data, fs=fs, i=i, orders=orders, weighting='none', matrix_type='hankel', algorithm='shift', showinfo=True, balance=True)
     ## Find stable poles from all poles
     lambd_stab, phi_stab, orders_stab, idx_stab = oma.find_stable_poles(lambd, phi, orders, s, stabcrit=stabcrit, valid_range={'freq': [0, np.inf], 'damping':[0, np.inf]}, indicator='freq', return_both_conjugates=False)   
     ## Natural frequencies, damping ratios and mode shapes for stable poles, sorted after the value of the natural frequencies
@@ -101,7 +101,7 @@ def modalParamOMA(data, fs, orders, i, s, stabcrit={'freq': 0.05, 'damping': 0.1
         
         plt.tight_layout()    
     
-    return f_n_sort, ksi_sort, phi_sort, fig, lambd_stab, phi_stab, orders_stab
+    return f_n_sort, ksi_sort, phi_sort, fig, lambd_stab, phi_stab, orders_stab, lambd, phi
     
        
 def plotModeShape(phi, i_phi_plot):
@@ -122,7 +122,7 @@ def plotModeShape(phi, i_phi_plot):
     phi_z = modal.maxreal((phi[32:40,:]+phi[40:48,:])/2)
     phi_theta = modal.maxreal((-phi[32:40,:]+phi[40:48,:])/B)
     
-    x_sensors = np.array([-572.5, -420, -300, -180, -100, 0, 100, 260, 420, 572.5]) # Sensor x-coordinates - [TOWER, A03, A04, A05, A06, A07, A08, TOWER]
+    x_sensors = np.array([-572.5, -420, -300, -180, -100, 0, 100, 260, 420, 572.5]) # Sensor x-coordinates - [TOWER, A03, A04, A05, A06, A07, A08, A09, A10, TOWER]
     # Calculating common y-lim for all plots
     ylim = 1.09*max([max(abs(phi_x[:, i_phi_plot])), max(abs(phi_y[:, i_phi_plot])), max(abs(phi_z[:, i_phi_plot])), max(abs(phi_theta[:, i_phi_plot]))])
     # Plot

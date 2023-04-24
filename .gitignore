@@ -7,9 +7,13 @@ src/AOMA/Numerical_example/results
 src/AOMA/Numerical_example/vibration_data
 #Jupyter notebook checkpoints
 
+#files
+.jpg
+.npz
 
 #Packages
 
 #Images
 src/AOMA/plots
 src/data_exploration/spectrum
+src/AOMA/Referencebased_Cov-SSI/plots

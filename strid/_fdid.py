@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Implementation of frequency domain identification methods:
-    - pLSCF for identification of a right matrix fraction
+    - Referencebased_Cov-SSI for identification of a right matrix fraction
       description of the system.
     - LSFD for identification of mode shapes from a FRF
       matrix and poles.
@@ -43,7 +43,7 @@ class PolyReferenceLSCF:
     def __init__(self, H, fs, sgn_exp_basis=1., constrain_N0=True):
         """Poly-reference least square complex frequency estimator
 
-        Define a poly-reference least square complex frequency (pLSCF)
+        Define a poly-reference least square complex frequency (Referencebased_Cov-SSI)
         frequency domain estimator. See [Cauberghe2004] for more information.
 
         Arguments

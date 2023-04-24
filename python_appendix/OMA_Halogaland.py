@@ -10,7 +10,7 @@ from dataloader_halogaland.plot import welch_plot
 def main():
 
     #%% Read corresponding file from all data loggers
-    path = os.getcwd()+'/../Data/Halogaland_2022_04_22'
+    path = os.getcwd()+'/../../../Data/Halogaland_2022_04_22'
     anodes = ['/anode003', '/anode004', '/anode005', '/anode006', '/anode007', '/anode008', '/anode009', '/anode010'] # List of all data loggers
     anode_names = ['A03', 'A04', 'A05', 'A06', 'A07', 'A08', 'A09', 'A10']
     anemometers = ['W03-7-1', 'W04-15-1', 'W05-19-1', 'W07-28-1', 'W10-49-1'] # List of anemometer names for each data logger (the ones closest to accelerometers)
@@ -50,13 +50,13 @@ def main():
     s = 6 # Stability level
     orders = np.arange(2, 252, 2) # Array of what orders to include
     stabcrit = {'freq': 0.05, 'damping': 0.1, 'mac': 0.1} # Default
-
+    print(orders)
     #%% Stabilisation plot for chosen interval and parameters
-    f_n_sort, ksi_sort, phi_sort, fig, lambd_stab, phi_stab, orders_stab = OMA.modalParamOMA(acc_all, fs, orders, i, s, stabcrit=stabcrit, autoSpectrum=True)
+    f_n_sort, ksi_sort, phi_sort, fig, lambd_stab, phi_stab, orders_stab, lambd, phi = OMA.modalParamOMA(acc_all, fs, orders, i, s, stabcrit=stabcrit, autoSpectrum=True)
 
 
 
-    return f_n_sort, ksi_sort, phi_sort, fig, lambd_stab, phi_stab, orders_stab, acc_all
+    return f_n_sort, ksi_sort, phi_sort, fig, lambd_stab, phi_stab, orders_stab, acc_all, lambd, phi
 
 
 

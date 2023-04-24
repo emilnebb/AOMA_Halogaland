@@ -15,6 +15,7 @@ hf = h5py.File('HalogalandModel_exportmodal.h5', 'r')
 
 # Frequencies
 f = np.array(hf.get('f'))
+print(f[:56])
 
 # Generalized mass
 gm = np.array(hf.get('gm'))
@@ -42,6 +43,7 @@ phi_label=phi_label_temp[:].astype('U10').ravel().tolist()
 
 # Nodes in bridge deck (total 573)
 node_deck=np.arange(1004,1576+1,1)
+#node_deck = np.array([0, 80, 140, 200, 240, 290, 340, 420, 500, 572]) + 1004
 
 # Create list index of nodes in bridge deck
 index_node_deck=[]
@@ -50,6 +52,27 @@ for k in np.arange(len(node_deck)):
     index_node_deck.append(np.argwhere(node_deck[k]==nodecoord[:,0])[0,0])
    
 nodecoord_deck=nodecoord[index_node_deck,:]
+
+"""
+print(type(nodecoord_deck))
+print(nodecoord_deck.shape)
+
+sensorcoord_deck = []
+print(nodecoord_deck.shape)
+sensorcoord_deck.append(nodecoord_deck[80])
+print(nodecoord_deck[80])
+sensorcoord_deck.append(nodecoord_deck[140])
+sensorcoord_deck.append(nodecoord_deck[200])
+sensorcoord_deck.append(nodecoord_deck[240])
+sensorcoord_deck.append(nodecoord_deck[290])
+sensorcoord_deck.append(nodecoord_deck[340])
+sensorcoord_deck.append(nodecoord_deck[420])
+sensorcoord_deck.append(nodecoord_deck[500])
+sensorcoord_deck =np.array(sensorcoord_deck)
+print(type(sensorcoord_deck))
+print(sensorcoord_deck.shape)
+"""
+
 
    
 # Create list of index of y-DOFs,z-DOFs, and t-DOFs in bridge deck
@@ -66,8 +89,8 @@ for k in np.arange(len(node_deck)):
     
     str_t=str(node_deck[k]) + '_UR1'
     index_t.append(phi_label.index(str_t))
-    
-    
+
+
 phi_y=phi[index_y,:]
 phi_z=phi[index_z,:]
 phi_t=phi[index_t,:]
@@ -75,7 +98,7 @@ phi_t=phi[index_t,:]
 
 #%% Plot single mode
 
-mode_plot=12 # Mode number to plot
+mode_plot=3 # Mode number to plot
 scale_factor=1e4 # Scale factor
 
 plt.figure()
