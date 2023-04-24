@@ -46,7 +46,8 @@ freq_modes = []
 number_in_sample = fs*60*analysis_length
 
 skipped = 0
-for period in range(number_of_periods-44):
+for period in range(number_of_periods):
+    #period = period + 44
     acc = loader.load_all_acceleration_data(loader.periods[period], preprosess=True,
                                             cutoff_frequency=cutoff_frequency, filter_order=10)
 
@@ -96,7 +97,7 @@ for period in range(number_of_periods-44):
 
             xi_auto, omega_n_auto, phi_auto, order_auto, probs_auto, ixs_auto = koma.clustering.group_clusters(*args)
 
-            xi_mean = np.array([np.mediann(xi_i) for xi_i in xi_auto])
+            xi_mean = np.array([np.median(xi_i) for xi_i in xi_auto])
             fn_mean = np.array([np.median(om_i) for om_i in omega_n_auto])/2/np.pi
 
             xi_std = np.array([np.std(xi_i) for xi_i in xi_auto])
