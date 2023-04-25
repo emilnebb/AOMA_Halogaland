@@ -46,8 +46,8 @@ freq_modes = []
 number_in_sample = fs*60*analysis_length
 
 skipped = 0
-for period in range(number_of_periods):
-    #period = period + 44
+for period in range(number_of_periods-44):
+    period = period + 44
     acc = loader.load_all_acceleration_data(loader.periods[period], preprosess=True,
                                             cutoff_frequency=cutoff_frequency, filter_order=10)
 
@@ -84,7 +84,7 @@ for period in range(number_of_periods):
                 phis.append(np.array(phis_in_order).transpose())
 
             t1_cov = time()
-            print("Cov-SSI executed in " + str(t1_cov - t0_cov))
+            #print("Cov-SSI executed in " + str(t1_cov - t0_cov))
 
             #Find stable poles routine from KOMA package here -> doesn't quite work yet
             lambd_stab, phi_stab, orders_stab, idx_stab = koma.oma.find_stable_poles(lambdas, phis, orders, s, stabcrit=stabcrit, valid_range={'freq': [0, np.inf], 'damping':[0, np.inf]}, indicator='freq', return_both_conjugates=False)
@@ -103,7 +103,7 @@ for period in range(number_of_periods):
             xi_std = np.array([np.std(xi_i) for xi_i in xi_auto])
             fn_std = np.array([np.std(om_i) for om_i in omega_n_auto])/2/np.pi
             t1_hdbscan = time()
-            print("HDBSCAN executed in " + str(t1_hdbscan - t0_hdbscan))
+            #print("HDBSCAN executed in " + str(t1_hdbscan - t0_hdbscan))
 
             t0_sort = time()
             #Sort and arrange modeshapes
@@ -118,14 +118,14 @@ for period in range(number_of_periods):
                 for b in range(np.shape(grouped_phis[a])[0]):
                    phi_extracted[a,b] = (np.real(np.median(grouped_phis[a][b])))
             t1_sort = time()
-            print("Post processing executed in " + str(t1_sort - t0_sort))
+            #print("Post processing executed in " + str(t1_sort - t0_sort))
 
             t0_stab = time()
             #Save stabilization plot
             stab_diag = stabilization_diagram(acc[j], fs, 2, (np.array(omega_n_auto)/2/np.pi), np.array(order_auto), all_freqs=np.abs(lambd_stab)/2/np.pi, all_orders=orders_stab)
             plt.savefig("plots/stab_diag/stabilization_diagram_" + str(period+1) + "_" + str(j+1) + ".jpg")
             t1_stab = time()
-            print("Stabilization diagram executed in " + str(t1_stab - t0_stab))
+            #print("Stabilization diagram executed in " + str(t1_stab - t0_stab))
 
             freq_modes.append([freq for freq in fn_mean])
 
@@ -133,7 +133,7 @@ for period in range(number_of_periods):
             #Load wind statistical data for analyzed time series
             mean_wind_speed, max_wind_speed = loader.load_wind_stat_data(loader.periods[period], analysis_length, j)
             t1_wind = time()
-            print("Wind statistics executed in " + str(t1_wind - t0_wind))
+            #print("Wind statistics executed in " + str(t1_wind - t0_wind))
 
             t1 = time() #end timer of computation process
             print("Time serie " + str(j+1) + " of " + str(len(acc)) + " done in " + str(t1-t0) + " sec. Period " + str(period+1) + " of " + str(number_of_periods) + " done. Number of skipped periods: " + str(skipped)+".")
@@ -143,7 +143,7 @@ for period in range(number_of_periods):
 
             #Write results to h5 file
             #res_data = np.vstack([fn_mean, 100*xi_mean]).T
-            with h5py.File(os.getcwd() + '/results/output_AOMA.h5', 'a') as hdf:
+            with h5py.File(os.getcwd() + '/results/output_2_AOMA.h5', 'a') as hdf:
                 G1 = hdf.create_group(timestamp)
 
                 #Write results
