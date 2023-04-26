@@ -122,8 +122,6 @@ class HDF5_dataloader:
 
         acc_example = self.load_acceleration(self.periods[12], self.acceleration_sensors[0], 'x', preprosess, cutoff_frequency, filter_order)
 
-        #acc_matrix = np.zeros((len(acc_example), 48))
-        #axis = ['x', 'y', 'z']
         acc_x = np.zeros((len(acc_example), len(self.acceleration_sensors)))
         acc_y = np.zeros((len(acc_example), len(self.acceleration_sensors)))
         acc_z = np.zeros((len(acc_example), len(self.acceleration_sensors)))
@@ -135,11 +133,7 @@ class HDF5_dataloader:
             acc_z[:, counter] = self.load_acceleration(period, sensor, 'z', preprosess, cutoff_frequency, filter_order)
             counter += 1
 
-        #print("X-vector shape: " + str(acc_x.shape))
-        #print("Y-vector shape: " + str(acc_y.shape))
-        #print("Z-vector shape: " + str(acc_z.shape))
         acc_matrix = np.concatenate((acc_x, acc_y, acc_z), axis=1)
-        #print("Total-vector shape: " + str(acc_matrix.shape))
 
         return acc_matrix
 
@@ -153,6 +147,7 @@ class HDF5_dataloader:
         return wind_data
 
     def load_wind_stat_data(self, period: str, timeseries_length: int, timeseries_num: int):
+        #TODO: write function description
 
         # Check if all channels are included
         if not set(self.wind_sensors).issubset(list(self.hdf5_file[period]['wind'].keys())):
@@ -168,3 +163,14 @@ class HDF5_dataloader:
         max_wind_speed = np.max(time_series_wind_data)
 
         return mean_wind_speed, max_wind_speed
+
+class HDF5_result_loader:
+    """
+    A dataloader specified to load results from AOMA analysis stored in a h5 format.
+    """
+
+    def __init__(self, path: str):
+        self.path = path
+        self.hdf5_file = h5py.File(self.path, 'r')
+        self.periods = list(self.hdf5_file.keys())
+        self.features = ['Damping', 'Frequencies', 'Modeshape']
