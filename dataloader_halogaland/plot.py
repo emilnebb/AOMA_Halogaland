@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
+import koma.modal as modal
 from mpl_toolkits.mplot3d import axes3d
 import colordict
 color_values = list(colordict.ColorDict(norm=1).values())
@@ -100,6 +101,65 @@ def stabilization_diagram(acceleration, sampling_frequency, Ndivisions, frequenc
 
     plt.legend()
     plt.grid()
+
+    return fig
+
+
+def plotModeShape(phi, i_phi_plot):
+    """
+    Arguments:
+    phi        : mode shape matrix, each column containing mode shape values for x1, x2, y1, y2, z1, z2 at the sensor locations
+    i_phi_plot : index of which mode shape to plot
+    Returns:
+    fig        : plot of mode shapes
+    ---------------------------------
+    Function plots mode shapes obtained from Cov-SSI
+    """
+    B = 18.6  # Width of bridge girder
+
+    phi_x = phi[:16,:]
+    phi_y = phi[16:32,:]
+    phi_z = phi[32:48]
+
+    phi_x = modal.maxreal((phi_x[::2, :] + phi_x[1::2, :]) / 2)
+    phi_y = modal.maxreal((phi_y[::2, :] + phi_y[1::2, :]) / 2)
+    phi_z = modal.maxreal((phi_z[::2, :] + phi_z[1::2, :]) / 2)
+
+    phi_theta = modal.maxreal((-phi[32:40, :] + phi[40:48, :]) / B)
+
+    x_sensors = np.array([-572.5, -420, -300, -180, -100, 0, 100, 260, 420,
+                          572.5])  # Sensor x-coordinates - [TOWER, A03, A04, A05, A06, A07, A08, A09, A10, TOWER]
+    # Calculating common y-lim for all plots
+    ylim = 1.09 * max([max(abs(phi_x[:, i_phi_plot])), max(abs(phi_y[:, i_phi_plot])), max(abs(phi_z[:, i_phi_plot])),
+                       max(abs(phi_theta[:, i_phi_plot]))])
+    # Plot
+    fig, axs = plt.subplots(4, 1, figsize=(7, 10))
+    axs[0].plot(x_sensors, np.concatenate((np.array([0]), np.real(phi_x[:, i_phi_plot]), np.array([0]))), color='black')
+    axs[0].axhline(0, color='grey', linestyle=':', linewidth=1)
+    axs[0].axvline(0, color='grey', linestyle=':', linewidth=1)
+    axs[0].set_title('Longitudinal mode shape')
+    axs[0].set_ylim(-ylim, ylim)
+
+    axs[1].plot(x_sensors, np.concatenate((np.array([0]), np.real(phi_y[:, i_phi_plot]), np.array([0]))), color='black')
+    axs[1].axhline(0, color='grey', linestyle=':', linewidth=1)
+    axs[1].axvline(0, color='grey', linestyle=':', linewidth=1)
+    axs[1].set_title('Horizontal mode shape')
+    axs[1].set_ylim(-ylim, ylim)
+
+    axs[2].plot(x_sensors, np.concatenate((np.array([0]), np.real(phi_z[:, i_phi_plot]), np.array([0]))), color='black')
+    axs[2].axhline(0, color='grey', linestyle=':', linewidth=1)
+    axs[2].axvline(0, color='grey', linestyle=':', linewidth=1)
+    axs[2].set_title('Vertical mode shape')
+    axs[2].set_ylim(-ylim, ylim)
+
+    axs[3].plot(x_sensors, np.concatenate((np.array([0]), np.real(phi_theta[:, i_phi_plot]), np.array([0]))),
+                color='black')
+    axs[3].axhline(0, color='grey', linestyle=':', linewidth=1)
+    axs[3].axvline(0, color='grey', linestyle=':', linewidth=1)
+    axs[3].set_title('Torsional mode shape')
+    axs[3].set_ylim(-ylim, ylim)
+
+    plt.tight_layout()
 
     return fig
 
