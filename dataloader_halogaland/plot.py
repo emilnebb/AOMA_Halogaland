@@ -117,9 +117,9 @@ def plotModeShape(phi, i_phi_plot):
     """
     B = 18.6  # Width of bridge girder
 
-    phi_x = phi[:16,:]
-    phi_y = phi[16:32,:]
-    phi_z = phi[32:48]
+    phi_x = phi[:16, :]
+    phi_y = phi[16:32, :]
+    phi_z = phi[32:48, :]
 
     phi_x = modal.maxreal((phi_x[::2, :] + phi_x[1::2, :]) / 2)
     phi_y = modal.maxreal((phi_y[::2, :] + phi_y[1::2, :]) / 2)
