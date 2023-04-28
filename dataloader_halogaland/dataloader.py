@@ -93,11 +93,12 @@ class HDF5_dataloader:
                                          'A06-3', 'A06-4', 'A07-1', 'A07-2', 'A08-1', 'A08-2', 'A08-3', 'A08-4', 'A09-1',
                                          'A09-2', 'A10-1', 'A10-2', 'A11-1'] # all acc-sensors
 
-        #self.acceleration_sensors = list(self.hdf5_file[self.periods[10]][self.data_types[0]].keys())
-        #self.strain_sensors = list(self.hdf5_file[self.periods[12]][self.data_types[0]].keys())
-
         self.wind_sensors = ['W03-7-1', 'W04-15-1', 'W05-17-1', 'W05-18-1', 'W05-19-1', 'W05-19-2', 'W07-28-1',
                              'W10-45-1', 'W10-47-1', 'W10-49-1']
+
+        self.temp_sensors = ['T01-1', 'T01-2', 'T02-1', 'T02-2', 'T03-1', 'T03-2', 'T04-1', 'T04-2', 'T05-1',
+                             'T05-2', 'T06-1', 'T06-2', 'T07-1', 'T07-2', 'T08-1', 'T08-2', 'T09-1', 'T09-2',
+                             'T10-1', 'T10-2', 'T11-1', 'T11-2']
 
         #print("Available accelerometers: " + str(self.acceleration_sensors))
 
@@ -108,7 +109,7 @@ class HDF5_dataloader:
 
         if preprosess:
             sampling_rate = self.hdf5_file[period][self.data_types[0]][sensor].attrs['samplerate']
-            filtered_acc = low_pass(acc_data , sampling_rate, cutoff_frequency, filter_order)
+            filtered_acc = low_pass(acc_data - np.mean(acc_data), sampling_rate, cutoff_frequency, filter_order)
             acc_data = downsample(sampling_rate, filtered_acc, cutoff_frequency*2)
 
         return acc_data
@@ -158,11 +159,39 @@ class HDF5_dataloader:
 
         all_wind_data = self.load_wind(period, 'W07-28-1')
 
-        time_series_wind_data = all_wind_data[timeseries_num*timeseries_length*32*60:(timeseries_num+1)*timeseries_length*32*60]
+        fs = self.hdf5_file[period]['wind']['W07-28-1'].attrs['samplerate']
+
+        time_series_wind_data = all_wind_data[timeseries_num*timeseries_length*fs*60:(timeseries_num+1)*timeseries_length*fs*60]
         mean_wind_speed = np.mean(time_series_wind_data)
         max_wind_speed = np.max(time_series_wind_data)
 
         return mean_wind_speed, max_wind_speed
+
+    def load_temp(self, period: str, sensor: str):
+        #TODO: write function description
+
+        #Temperature measurements has a 0.25 Hz sampling rate
+
+        temp_data = np.array(self.hdf5_file[period]['temperature'][sensor]['x'])
+
+        return temp_data
+
+    def load_temp_stat_data(self, period: str, timeseries_length: int, timeseries_num: int):
+        # TODO: write function description
+
+        # Check if all channels are included
+        if not set(self.temp_sensors).issubset(list(self.hdf5_file[period]['temperature'].keys())):
+            return False
+
+        #Pick one temp sensor to collect data from
+        all_temp_data = self.load_temp(period, 'T07-1')
+
+        fs = self.hdf5_file[period]['temperature']['T07-1'].attrs['samplerate']
+
+        time_series_temp_data = all_temp_data[timeseries_num * timeseries_length * fs * 60:(timeseries_num + 1) * timeseries_length * fs * 60]
+        mean_temp = np.mean(time_series_temp_data)
+
+        return mean_temp
 
 class HDF5_result_loader:
     """
