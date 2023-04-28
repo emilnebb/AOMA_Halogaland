@@ -1,15 +1,13 @@
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
-from scipy import signal
 import dataloader_halogaland.dataloader as dl
-from dataloader_halogaland.plot import welch_plot, stabilization_diagram
+from dataloader_halogaland.plot import stabilization_diagram
 import os
-import koma.oma, koma.plot
+import koma.oma
 import koma.clustering
 import strid
 from time import time
-import pandas as pd
 from datetime import datetime, timedelta
 import warnings
 
@@ -42,7 +40,6 @@ else:
 
 number_of_periods = len(loader.periods)
 print("Number of perdiods to run " + str(number_of_periods))
-freq_modes = []
 number_in_sample = fs*60*analysis_length
 
 skipped = 0
@@ -57,12 +54,11 @@ for period in range(number_of_periods-44):
         acc = np.array_split(acc, acc.shape[0]/number_in_sample)
         #print(len(acc))
 
-        for j in range(len(acc)): #add -15 here for testing
+        for j in range(len(acc)):
 
             t0 = time() #Start timer of computation process
 
-            t0_cov = time()
-            #Cov-SSI call
+            #Cov-SSI
             ssid = strid.CovarianceDrivenStochasticSID(acc[j].transpose(), fs, ix_references)
             modes = {}
             for order in orders:
@@ -83,14 +79,9 @@ for period in range(number_of_periods-44):
                 lambdas.append(np.array(lambdas_in_order))
                 phis.append(np.array(phis_in_order).transpose())
 
-            t1_cov = time()
-            #print("Cov-SSI executed in " + str(t1_cov - t0_cov))
-
-            #Find stable poles routine from KOMA package here -> doesn't quite work yet
             lambd_stab, phi_stab, orders_stab, idx_stab = koma.oma.find_stable_poles(lambdas, phis, orders, s, stabcrit=stabcrit, valid_range={'freq': [0, np.inf], 'damping':[0, np.inf]}, indicator='freq', return_both_conjugates=False)
 
-            t0_hdbscan = time()
-            #Pole clustering
+            #HDBSCAN
             pole_clusterer = koma.clustering.PoleClusterer(lambd_stab, phi_stab, orders_stab, min_cluster_size=10, min_samples=10, scaling={'mac':1.0, 'lambda_real':1.0, 'lambda_imag': 1.0})
             prob_threshold = 0.5   #probability of pole to belong to cluster, based on estimated "probability" density function
             args = pole_clusterer.postprocess(prob_threshold=prob_threshold, normalize_and_maxreal=True)
@@ -102,12 +93,8 @@ for period in range(number_of_periods-44):
 
             xi_std = np.array([np.std(xi_i) for xi_i in xi_auto])
             fn_std = np.array([np.std(om_i) for om_i in omega_n_auto])/2/np.pi
-            t1_hdbscan = time()
-            #print("HDBSCAN executed in " + str(t1_hdbscan - t0_hdbscan))
 
-            t0_sort = time()
             #Sort and arrange modeshapes
-            # Group only a selected quantity (e.g. indices)
             lambd_used, phi_used, order_stab_used, group_ixs, all_single_ix, probs = pole_clusterer.postprocess(prob_threshold=prob_threshold)
 
             grouped_phis = koma.clustering.group_array(phi_used, group_ixs, axis=1)
@@ -117,23 +104,14 @@ for period in range(number_of_periods-44):
             for a in range(len(grouped_phis)):
                 for b in range(np.shape(grouped_phis[a])[0]):
                    phi_extracted[a,b] = (np.real(np.median(grouped_phis[a][b])))
-            t1_sort = time()
-            #print("Post processing executed in " + str(t1_sort - t0_sort))
 
-            t0_stab = time()
             #Save stabilization plot
             stab_diag = stabilization_diagram(acc[j], fs, 2, (np.array(omega_n_auto)/2/np.pi), np.array(order_auto), all_freqs=np.abs(lambd_stab)/2/np.pi, all_orders=orders_stab)
             plt.savefig("plots/stab_diag/stabilization_diagram_" + str(period+1) + "_" + str(j+1) + ".jpg")
-            t1_stab = time()
-            #print("Stabilization diagram executed in " + str(t1_stab - t0_stab))
 
-            freq_modes.append([freq for freq in fn_mean])
-
-            t0_wind = time()
             #Load wind statistical data for analyzed time series
             mean_wind_speed, max_wind_speed = loader.load_wind_stat_data(loader.periods[period], analysis_length, j)
-            t1_wind = time()
-            #print("Wind statistics executed in " + str(t1_wind - t0_wind))
+            mean_temp = loader.load_temp_stat_data(loader.periods[period], analysis_length, j)
 
             t1 = time() #end timer of computation process
             print("Time serie " + str(j+1) + " of " + str(len(acc)) + " done in " + str(t1-t0) + " sec. Period " + str(period+1) + " of " + str(number_of_periods) + " done. Number of skipped periods: " + str(skipped)+".")
@@ -143,7 +121,7 @@ for period in range(number_of_periods-44):
 
             #Write results to h5 file
             #res_data = np.vstack([fn_mean, 100*xi_mean]).T
-            with h5py.File(os.getcwd() + '/results/output_2_AOMA.h5', 'a') as hdf:
+            with h5py.File(os.getcwd() + '/results/output_4_AOMA.h5', 'a') as hdf:
                 G1 = hdf.create_group(timestamp)
 
                 #Write results
@@ -154,6 +132,7 @@ for period in range(number_of_periods-44):
                 #Write attributes
                 G1.attrs['Mean wind speed'] = mean_wind_speed
                 G1.attrs['Max wind speed'] = max_wind_speed
+                G1.attrs['Mean temp'] = mean_temp
                 G1.attrs['Execution time'] = (t1-t0)
                 G1.attrs['Std of acceleration data'] = np.mean(np.std(acc[j], axis=0))
 
