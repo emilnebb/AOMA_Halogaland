@@ -110,7 +110,7 @@ for period in range(number_of_periods-44):
             plt.savefig("plots/stab_diag/stabilization_diagram_" + str(period+1) + "_" + str(j+1) + ".jpg")
 
             # Load wind statistical data for analyzed time series
-            mean_wind_speed, max_wind_speed = loader.load_wind_stat_data(loader.periods[period], analysis_length, j)
+            mean_wind_speed, max_wind_speed, mean_wind_direction = loader.load_wind_stat_data(loader.periods[period], analysis_length, j)
             mean_temp = loader.load_temp_stat_data(loader.periods[period], analysis_length, j)
 
             t1 = time()  # end timer of computation process
@@ -120,7 +120,7 @@ for period in range(number_of_periods-44):
             timestamp = (datetime.strptime(loader.periods[period], "%Y-%m-%d-%H-%M-%S") + timedelta(minutes=j*analysis_length)).strftime("%Y-%m-%d-%H-%M-%S")
 
             # Write results to h5 file
-            with h5py.File(os.getcwd() + '/results/output_4_AOMA.h5', 'a') as hdf:
+            with h5py.File(os.getcwd() + '/results/output_5_AOMA.h5', 'a') as hdf:
                 G1 = hdf.create_group(timestamp)
 
                 # Write results
@@ -131,6 +131,7 @@ for period in range(number_of_periods-44):
                 # Write attributes
                 G1.attrs['Mean wind speed'] = mean_wind_speed
                 G1.attrs['Max wind speed'] = max_wind_speed
+                G1.attrs['Mean wind direction'] = mean_wind_direction
                 G1.attrs['Mean temp'] = mean_temp
                 G1.attrs['Execution time'] = (t1-t0)
                 G1.attrs['Std of acceleration data'] = np.mean(np.std(acc[j], axis=0))

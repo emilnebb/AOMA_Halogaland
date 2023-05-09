@@ -15,7 +15,8 @@ class TDMS_dataloader:
     def __init__(self, path: str):
 
         self.path = path
-        self.anodes = ['/anode003', '/anode004', '/anode005', '/anode006', '/anode007', '/anode008', '/anode009', '/anode010']  # List of all data loggers
+        self.anodes = ['/anode003', '/anode004', '/anode005', '/anode006', '/anode007', '/anode008',
+                       '/anode009', '/anode010']  # List of all data loggers
         self.acc_names = ['A03', 'A04', 'A05', 'A06', 'A07', 'A08', 'A09', 'A10']
         self.strain_names = ['SG03', 'SG04', 'SG05', 'SG06', 'SG07', 'SG08', 'SG09', 'SG10']
         self.fileToRead = '2022-02-04-00-00-00Z.tdms'
@@ -39,7 +40,6 @@ class TDMS_dataloader:
         sensors = ['1x', '1y', '1z', '2x', '2y', '2z']
         acc_dict = {}
 
-        #acc_dict['timestamp'] = np.array([datetime.datetime.utcfromtimestamp(x/1000000000) for x in acceleration['timestamp'][:]])
         acc_dict['timestamp'] = acceleration['timestamp'][:]/1000000000 #convert to seconds
 
 
@@ -89,9 +89,9 @@ class HDF5_dataloader:
                                          'A07-1', 'A07-2', 'A08-1', 'A08-2', 'A09-1',
                                          'A09-2', 'A10-1', 'A10-2']  # bridge deck only
         else:
-            self.acceleration_sensors = ['A01-1', 'A03-1', 'A03-2', 'A04-1', 'A04-2', 'A05-1', 'A05-2', 'A06-1', 'A06-2',
-                                         'A06-3', 'A06-4', 'A07-1', 'A07-2', 'A08-1', 'A08-2', 'A08-3', 'A08-4', 'A09-1',
-                                         'A09-2', 'A10-1', 'A10-2', 'A11-1'] # all acc-sensors
+            self.acceleration_sensors = ['A01-1', 'A03-1', 'A03-2', 'A04-1', 'A04-2', 'A05-1', 'A05-2', 'A06-1',
+                                         'A06-2', 'A06-3', 'A06-4', 'A07-1', 'A07-2', 'A08-1', 'A08-2', 'A08-3',
+                                         'A08-4', 'A09-1', 'A09-2', 'A10-1', 'A10-2', 'A11-1'] # all acc-sensors
 
         self.wind_sensors = ['W03-7-1', 'W04-15-1', 'W05-17-1', 'W05-18-1', 'W05-19-1', 'W05-19-2', 'W07-28-1',
                              'W10-45-1', 'W10-47-1', 'W10-49-1']
@@ -102,7 +102,8 @@ class HDF5_dataloader:
 
         #print("Available accelerometers: " + str(self.acceleration_sensors))
 
-    def load_acceleration(self, period: str, sensor: str, axis: str, preprosess=False, cutoff_frequency = None, filter_order=None):
+    def load_acceleration(self, period: str, sensor: str, axis: str, preprosess=False, cutoff_frequency = None,
+                          filter_order=None):
         # TODO: write function description
 
         acc_data = self.hdf5_file[period][self.data_types[0]][sensor][axis]
@@ -121,7 +122,8 @@ class HDF5_dataloader:
         if not set(self.acceleration_sensors).issubset(list(self.hdf5_file[period][self.data_types[0]].keys())):
             return False
 
-        acc_example = self.load_acceleration(self.periods[12], self.acceleration_sensors[0], 'x', preprosess, cutoff_frequency, filter_order)
+        acc_example = self.load_acceleration(self.periods[12], self.acceleration_sensors[0], 'x', preprosess,
+                                             cutoff_frequency, filter_order)
 
         acc_x = np.zeros((len(acc_example), len(self.acceleration_sensors)))
         acc_y = np.zeros((len(acc_example), len(self.acceleration_sensors)))
@@ -143,9 +145,10 @@ class HDF5_dataloader:
 
         #Wind measurements has a 32 Hz sampling rate
 
-        wind_data = np.array(self.hdf5_file[period]['wind'][sensor]['magnitude'])
+        wind_magnitude = np.array(self.hdf5_file[period]['wind'][sensor]['magnitude'])
+        wind_direction = np.array(self.hdf5_file[period]['wind'][sensor]['direction'])
 
-        return wind_data
+        return wind_magnitude, wind_direction
 
     def load_wind_stat_data(self, period: str, timeseries_length: int, timeseries_num: int):
         #TODO: write function description
@@ -157,15 +160,19 @@ class HDF5_dataloader:
         #Make an assumption that wind sensor at mid span of the bridge makes up a fairly good representation
         #of the overall wind magnitude along the bridge span
 
-        all_wind_data = self.load_wind(period, 'W07-28-1')
+        wind_magnitude, wind_direction = self.load_wind(period, 'W07-28-1')
 
         fs = self.hdf5_file[period]['wind']['W07-28-1'].attrs['samplerate']
 
-        time_series_wind_data = all_wind_data[timeseries_num*timeseries_length*fs*60:(timeseries_num+1)*timeseries_length*fs*60]
-        mean_wind_speed = np.mean(time_series_wind_data)
-        max_wind_speed = np.max(time_series_wind_data)
+        time_series_wind_magnitude = wind_magnitude[timeseries_num*timeseries_length*fs*60:(timeseries_num+1)
+                                                                                      *timeseries_length*fs*60]
+        time_series_wind_direction = wind_direction[timeseries_num*timeseries_length*fs*60:(timeseries_num+1)
+                                                                                      *timeseries_length*fs*60]
+        mean_wind_speed = np.mean(time_series_wind_magnitude)
+        max_wind_speed = np.max(time_series_wind_magnitude)
+        mean_wind_direction = np.mean(time_series_wind_direction)
 
-        return mean_wind_speed, max_wind_speed
+        return mean_wind_speed, max_wind_speed, mean_wind_direction
 
     def load_temp(self, period: str, sensor: str):
         #TODO: write function description
@@ -188,7 +195,8 @@ class HDF5_dataloader:
 
         fs = self.hdf5_file[period]['temperature']['T07-1'].attrs['samplerate']
 
-        time_series_temp_data = all_temp_data[timeseries_num * timeseries_length * fs * 60:(timeseries_num + 1) * timeseries_length * fs * 60]
+        time_series_temp_data = all_temp_data[timeseries_num * timeseries_length * int(fs * 60):(timeseries_num + 1)
+                                                                                * timeseries_length * int(fs * 60)]
         mean_temp = np.mean(time_series_temp_data)
 
         return mean_temp
