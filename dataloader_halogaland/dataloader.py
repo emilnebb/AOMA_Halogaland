@@ -1,7 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from nptdms import TdmsFile #docs: https://nptdms.readthedocs.io/en/stable/index.html
-import datetime
 import h5py
 from dataloader_halogaland.processer import low_pass, downsample
 
@@ -201,6 +199,13 @@ class HDF5_dataloader:
 
         return mean_temp
 
+class Mode:
+    def __init__(self, frequency, mode_shape, damping=None):
+        self.frequency = frequency
+        self.damping = damping
+        self.mode_shape = mode_shape
+
+
 class HDF5_result_loader:
     """
     A dataloader specified to load results from AOMA analysis stored in a h5 format.
@@ -211,3 +216,49 @@ class HDF5_result_loader:
         self.hdf5_file = h5py.File(self.path, 'r')
         self.periods = list(self.hdf5_file.keys())
         self.features = ['Damping', 'Frequencies', 'Modeshape']
+
+    def get_modes_in_period(self, period):
+
+        freqs = np.array(self.hdf5_file[period]['Frequencies'])
+        dampings = np.array(self.hdf5_file[period]['Damping'])
+        mode_shapes = np.array(self.hdf5_file[period]['Modeshape'])
+
+        modes_in_period = []
+
+        for i in range(len(freqs)):
+            mode = Mode(freqs[i], mode_shapes[i], dampings[i])
+            modes_in_period.append(mode)
+
+        return np.array(modes_in_period)
+
+    def get_modes_all_periods(self):
+
+        all_modes = []
+
+        for period in self.periods:
+
+            all_modes.append(self.get_modes_in_period(period))
+
+        return all_modes
+
+    def get_statistics(self):
+        temps = []
+        mean_wind_speed = []
+        max_wind_speed = []
+        mean_wind_direction = []
+        execution_time = []
+
+        for period in self.periods:
+            temps.append(self.hdf5_file[period].attrs['Mean temp'])
+            mean_wind_speed.append(self.hdf5_file[period].attrs['Mean wind speed'])
+            max_wind_speed.append(self.hdf5_file[period].attrs['Max wind speed'])
+            mean_wind_direction.append(self.hdf5_file[period].attrs['Mean wind direction'])
+            execution_time.append(self.hdf5_file[period].attrs['Execution time'])
+
+        temps = np.array(temps)
+        mean_wind_speed = np.array(mean_wind_speed)
+        max_wind_speed = np.array(max_wind_speed)
+        mean_wind_direction = np.array(mean_wind_direction)
+        execution_time = np.array(execution_time)
+
+        return temps, mean_wind_speed, max_wind_speed, mean_wind_direction, execution_time
