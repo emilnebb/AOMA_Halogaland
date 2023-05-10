@@ -200,10 +200,12 @@ class HDF5_dataloader:
         return mean_temp
 
 class Mode:
-    def __init__(self, frequency, mode_shape, damping=None):
+    # TODO: write class description
+    def __init__(self, frequency, mode_shape, damping=None, mode_label=None):
         self.frequency = frequency
         self.damping = damping
         self.mode_shape = mode_shape
+        self.mode_label = mode_label
 
 
 class HDF5_result_loader:
@@ -218,6 +220,7 @@ class HDF5_result_loader:
         self.features = ['Damping', 'Frequencies', 'Modeshape']
 
     def get_modes_in_period(self, period):
+        # TODO: write function description
 
         freqs = np.array(self.hdf5_file[period]['Frequencies'])
         dampings = np.array(self.hdf5_file[period]['Damping'])
@@ -232,16 +235,17 @@ class HDF5_result_loader:
         return np.array(modes_in_period)
 
     def get_modes_all_periods(self):
+        # TODO: write function description
 
         all_modes = []
 
         for period in self.periods:
-
             all_modes.append(self.get_modes_in_period(period))
 
         return all_modes
 
     def get_statistics(self):
+        # TODO: write function description
         temps = []
         mean_wind_speed = []
         max_wind_speed = []
@@ -262,3 +266,49 @@ class HDF5_result_loader:
         execution_time = np.array(execution_time)
 
         return temps, mean_wind_speed, max_wind_speed, mean_wind_direction, execution_time
+
+class FEM_result_loader:
+
+    def __init__(self, path: str):
+        self.path = path
+        self.hf = h5py.File(self.path, 'r')
+
+        # manually picked bridge deck modes from Abaqus model
+        self.deck_modes_idx = np.array([1, 2, 3, 4, 5, 6, 7, 12, 13, 14, 15, 16, 25, 32, 33,
+                                   34, 36, 37, 40, 45, 46, 48, 49, 50]) - 1
+
+        self.sensor_labels = ['3080_U1', '2080_U1', '3140_U1', '2140_U1', '3200_U1',
+                                 '2200_U1', '3240_U1', '2240_U1', '3290_U1', '2290_U1',
+                                 '3340_U1', '2340_U1', '3420_U1', '2420_U1', '3500_U1',
+                                 '2500_U1',
+                                 '3080_U2', '2080_U2', '3140_U2', '2140_U2', '3200_U2',
+                                 '2200_U2', '3240_U2', '2240_U2', '3290_U2', '2290_U2',
+                                 '3340_U2', '2340_U2', '3420_U2', '2420_U2', '3500_U2',
+                                 '2500_U2',
+                                 '3080_U3', '2080_U3', '3140_U3', '2140_U3', '3200_U3',
+                                 '2200_U3', '3240_U3', '2240_U3', '3290_U3', '2290_U3',
+                                 '3340_U3', '2340_U3', '3420_U3', '2420_U3', '3500_U3',
+                                 '2500_U3']
+
+        phi_label_temp = np.array(self.hf.get('phi_label'))
+        phi_label = phi_label_temp[:].astype('U10').ravel().tolist()
+
+        sensor_indexes = []
+        for label in self.sensor_labels:
+            if label in phi_label:
+                sensor_indexes.append(phi_label.index(label))
+
+        self.f = np.array(self.hf.get('f'))[self.deck_modes_idx]
+        phi = np.array(self.hf.get('phi'))[:, self.deck_modes_idx]
+        self.phi = phi[sensor_indexes, :]
+
+    def get_all_modes(self):
+
+        modes = []
+
+        for i in range(len(self.f)):
+            mode = Mode(self.f[i], self.phi[:, i])
+            modes.append(mode)
+
+        return np.array(modes)
+
