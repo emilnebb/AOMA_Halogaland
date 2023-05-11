@@ -44,7 +44,7 @@ number_in_sample = fs*60*analysis_length
 
 skipped = 0
 for period in range(number_of_periods-44):
-    period = period + 44
+    #period = period + 44
     acc = loader.load_all_acceleration_data(loader.periods[period], preprosess=True,
                                             cutoff_frequency=cutoff_frequency, filter_order=10)
 
@@ -79,11 +79,14 @@ for period in range(number_of_periods-44):
                 lambdas.append(np.array(lambdas_in_order))
                 phis.append(np.array(phis_in_order).transpose())
 
-            lambd_stab, phi_stab, orders_stab, idx_stab = koma.oma.find_stable_poles(lambdas, phis, orders, s, stabcrit=stabcrit, valid_range={'freq': [0.05, np.inf], 'damping':[0, 0.95]}, indicator='freq', return_both_conjugates=False)
+            lambd_stab, phi_stab, orders_stab, idx_stab = koma.oma.find_stable_poles(lambdas, phis, orders, s,
+                                    stabcrit=stabcrit, valid_range={'freq': [0.05, np.inf], 'damping':[0, 0.2]},
+                                    indicator='freq', return_both_conjugates=False)
 
             # HDBSCAN
-            pole_clusterer = koma.clustering.PoleClusterer(lambd_stab, phi_stab, orders_stab, min_cluster_size=10, min_samples=10, scaling={'mac':1.0, 'lambda_real':1.0, 'lambda_imag': 1.0})
-            prob_threshold = 0.5  # probability of pole to belong to cluster, based on estimated "probability" density function
+            pole_clusterer = koma.clustering.PoleClusterer(lambd_stab, phi_stab, orders_stab, min_cluster_size=10,
+                                            min_samples=10, scaling={'mac':1.0, 'lambda_real':1.0, 'lambda_imag': 1.0})
+            prob_threshold = 0.5
             args = pole_clusterer.postprocess(prob_threshold=prob_threshold, normalize_and_maxreal=True)
 
             xi_auto, omega_n_auto, phi_auto, order_auto, probs_auto, ixs_auto = koma.clustering.group_clusters(*args)
@@ -95,7 +98,8 @@ for period in range(number_of_periods-44):
             fn_std = np.array([np.std(om_i) for om_i in omega_n_auto])/2/np.pi
 
             # Sort and arrange modeshapes
-            lambd_used, phi_used, order_stab_used, group_ixs, all_single_ix, probs = pole_clusterer.postprocess(prob_threshold=prob_threshold)
+            lambd_used, phi_used, order_stab_used, group_ixs, all_single_ix, probs = \
+                pole_clusterer.postprocess(prob_threshold=prob_threshold)
 
             grouped_phis = koma.clustering.group_array(phi_used, group_ixs, axis=1)
 
@@ -105,22 +109,29 @@ for period in range(number_of_periods-44):
                 for b in range(np.shape(grouped_phis[a])[0]):
                    phi_extracted[a, b] = (np.real(np.median(grouped_phis[a][b])))
 
-            # Save stabilization plot
-            stab_diag = stabilization_diagram(acc[j], fs, 2, (np.array(omega_n_auto)/2/np.pi), np.array(order_auto), all_freqs=np.abs(lambd_stab)/2/np.pi, all_orders=orders_stab)
-            plt.savefig("plots/stab_diag/stabilization_diagram_" + str(period+1) + "_" + str(j+1) + ".jpg")
+
 
             # Load wind statistical data for analyzed time series
-            mean_wind_speed, max_wind_speed, mean_wind_direction = loader.load_wind_stat_data(loader.periods[period], analysis_length, j)
+            mean_wind_speed, max_wind_speed, mean_wind_direction = loader.load_wind_stat_data(loader.periods[period],
+                                                                                              analysis_length, j)
             mean_temp = loader.load_temp_stat_data(loader.periods[period], analysis_length, j)
 
             t1 = time()  # end timer of computation process
-            print("Time serie " + str(j+1) + " of " + str(len(acc)) + " done in " + str(t1-t0) + " sec. Period " + str(period+1) + " of " + str(number_of_periods) + " done. Number of skipped periods: " + str(skipped)+".")
+            print("Time serie " + str(j+1) + " of " + str(len(acc)) + " done in " + str(t1-t0) + " sec. Period " +
+                  str(period+1) + " of " + str(number_of_periods) +
+                  " done. Number of skipped periods: " + str(skipped)+".")
 
             # Prepare timestamp of the time series in process
-            timestamp = (datetime.strptime(loader.periods[period], "%Y-%m-%d-%H-%M-%S") + timedelta(minutes=j*analysis_length)).strftime("%Y-%m-%d-%H-%M-%S")
+            timestamp = (datetime.strptime(loader.periods[period], "%Y-%m-%d-%H-%M-%S") +
+                         timedelta(minutes=j*analysis_length)).strftime("%Y-%m-%d-%H-%M-%S")
+
+            # Save stabilization plot
+            stab_diag = stabilization_diagram(acc[j], fs, 2, (np.array(omega_n_auto) / 2 / np.pi), np.array(order_auto),
+                                              all_freqs=np.abs(lambd_stab) / 2 / np.pi, all_orders=orders_stab)
+            plt.savefig("plots/stab_diag/min_size_10/stabilization_diagram_" + str(timestamp) + ".jpg")
 
             # Write results to h5 file
-            with h5py.File(os.getcwd() + '/results/output_5_AOMA.h5', 'a') as hdf:
+            with h5py.File(os.getcwd() + '/results/output_AOMA_min_size_10.h5', 'a') as hdf:
                 G1 = hdf.create_group(timestamp)
 
                 # Write results
