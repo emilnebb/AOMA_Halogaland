@@ -9,7 +9,7 @@ from strid.utils import modal_assurance_criterion
 
 class ModeTrace:
     def __init__(self, reference_modes: list[dl.Mode], length,
-                 simcrit = {'freq': 0.05, 'mac': 0.2}):
+                 simcrit = {'freq': 0.1, 'mac': 0.2}):
 
         self.reference_modes = {}
         for i, mode in enumerate(reference_modes):
@@ -18,6 +18,10 @@ class ModeTrace:
 
         self.mode_trace =  np.empty(shape=[len(self.reference_modes),length], dtype=object)
         self.simcrit = simcrit
+        self.mode_type = ['Horizontal', 'Vertical', 'Horizontal', 'Vertical', 'Vertical',
+                          'Vertical', 'Horizontal', 'Vertical', 'Vertical', 'Horizontal',
+                          'Vertical', 'Torsional', 'Vertical', 'Torsional', 'Horizontal',
+                          'Vertical', 'Vertical', 'Vertical', 'Torsional', 'Vertical']
 
     def add_modes_from_period(self, candidate_modes: list[dl.Mode], period: int):
         candidate_modes = candidate_modes
@@ -75,7 +79,7 @@ class ModeTrace:
         axs = axs.ravel()
         for i, ax in enumerate(axs):
             freqs = self.get_frequencies_from_trace(i)
-            ax.set_title('Mode ' + str(i + 1))
+            ax.set_title('Mode ' + str(i + 1) + ' - ' + str(self.mode_type[i]))
             ax.set_xlabel('f [Hz]')
             if len(freqs) == 0:
                 continue
@@ -91,7 +95,7 @@ class ModeTrace:
         axs = axs.ravel()
         for i, ax in enumerate(axs):
             damp = self.get_damping_from_trace(i)
-            ax.set_title('Mode ' + str(i + 1))
+            ax.set_title('Mode ' + str(i + 1)+ ' - ' + str(self.mode_type[i]))
             ax.set_xlabel('Damping')
             if len(damp) == 0:
                 continue
@@ -107,7 +111,7 @@ class ModeTrace:
         axs = axs.ravel()
         for i, ax in enumerate(axs):
             freqs = self.get_frequencies_from_trace(i)
-            ax.set_title('Mode ' + str(i + 1))
+            ax.set_title('Mode ' + str(i + 1)+ ' - ' + str(self.mode_type[i]))
             ax.set_xlabel('f [Hz]')
             ax.set_ylabel('Temperature')
             if len(freqs) == 0:
@@ -136,7 +140,7 @@ class ModeTrace:
         axs = axs.ravel()
         for i, ax in enumerate(axs):
             damp = self.get_damping_from_trace(i)
-            ax.set_title('Mode ' + str(i + 1))
+            ax.set_title('Mode ' + str(i + 1)+ ' - ' + str(self.mode_type[i]))
             ax.set_xlabel('Damping')
             ax.set_ylabel('Mean wind speed [m/s]')
             if len(damp) < 1:
