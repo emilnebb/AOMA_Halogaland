@@ -201,11 +201,13 @@ class HDF5_dataloader:
 
 class Mode:
     # TODO: write class description
-    def __init__(self, frequency, mode_shape, damping=None, mode_label=None):
+    def __init__(self, frequency, mode_shape, damping=None, mode_type=None):
         self.frequency = frequency
         self.damping = damping
         self.mode_shape = mode_shape
-        self.mode_label = mode_label
+        self.mode_type = mode_type
+        self.delta_f = None
+        self.mac_1 = None
 
 
 class HDF5_result_loader:
@@ -232,7 +234,7 @@ class HDF5_result_loader:
             mode = Mode(freqs[i], mode_shapes[i], dampings[i])
             modes_in_period.append(mode)
 
-        return np.array(modes_in_period)
+        return modes_in_period
 
     def get_modes_all_periods(self):
         # TODO: write function description
@@ -275,7 +277,12 @@ class FEM_result_loader:
 
         # manually picked bridge deck modes from Abaqus model
         self.deck_modes_idx = np.array([1, 2, 3, 4, 5, 6, 7, 12, 13, 14, 15, 16, 25, 32, 33,
-                                   34, 36, 37, 40, 45, 46, 48, 49, 50]) - 1
+                                   34, 40, 45, 48, 50]) - 1
+
+        self.mode_type = ['Horizontal', 'Vertical', 'Horizontal', 'Vertical', 'Vertical',
+                          'Vertical', 'Horizontal', 'Vertical', 'Vertical', 'Horizontal',
+                          'Vertical', 'Torsional', 'Vertical', 'Torsional', 'Horizontal',
+                          'Vertical', 'Vertical', 'Vertical', 'Torsional', 'Vertical']
 
         self.sensor_labels = ['3080_U1', '2080_U1', '3140_U1', '2140_U1', '3200_U1',
                                  '2200_U1', '3240_U1', '2240_U1', '3290_U1', '2290_U1',
@@ -307,8 +314,8 @@ class FEM_result_loader:
         modes = []
 
         for i in range(len(self.f)):
-            mode = Mode(self.f[i], self.phi[:, i])
+            mode = Mode(self.f[i], self.phi[:, i], mode_type=self.mode_type[i])
             modes.append(mode)
 
-        return np.array(modes)
+        return modes
 
