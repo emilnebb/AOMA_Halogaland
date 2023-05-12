@@ -1,14 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import dataloader_halogaland.dataloader as dl
 from dataloader_halogaland.plot import plotModeShape
 from strid.utils import modal_assurance_criterion
+import scipy as sp
 
 
 
 
 class ModeTrace:
-    def __init__(self, reference_modes: list[dl.Mode], length,
+    def __init__(self, reference_modes: list[dl.Mode], numb_analysis,
                  simcrit = {'freq': 0.1, 'mac': 0.2}):
 
         self.reference_modes = {}
@@ -16,7 +18,8 @@ class ModeTrace:
             new_mode = {i:mode}
             self.reference_modes.update(new_mode)
 
-        self.mode_trace =  np.empty(shape=[len(self.reference_modes),length], dtype=object)
+        self.numb_analysis = numb_analysis
+        self.mode_trace =  np.empty(shape=[len(self.reference_modes), self.numb_analysis], dtype=object)
         self.simcrit = simcrit
         self.mode_type = ['Horizontal', 'Vertical', 'Horizontal', 'Vertical', 'Vertical',
                           'Vertical', 'Horizontal', 'Vertical', 'Vertical', 'Horizontal',
@@ -75,7 +78,7 @@ class ModeTrace:
         return freqs
 
     def plot_frequency_distribution(self):
-        fig, axs = plt.subplots(5, 4, figsize=(20, 20))
+        fig, axs = plt.subplots(5, 4, figsize=(20, 20), dpi=300)
         axs = axs.ravel()
         for i, ax in enumerate(axs):
             freqs = self.get_frequencies_from_trace(i)
@@ -84,14 +87,22 @@ class ModeTrace:
             if len(freqs) == 0:
                 continue
             freqs_mode = np.array(list(zip(*freqs))[1])
-            ax.hist(freqs_mode, 20)
-        fig.suptitle('Frequency distribution', fontsize=20, y=0.99)
+            ax.hist(freqs_mode, 20, label='AOMA')
+            ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
+            #ax.vlines(self.reference_modes[i].frequency, 0, 250, color='red', linestyles='dashed', \
+            # label='FEM')
+            text = 'n = ' + str(len(freqs_mode)) + '\nr = ' + \
+                   f"{(100*len(freqs_mode)/self.numb_analysis):.1f}" + '%'
+            ax.text(0.72, 0.95, text, transform=ax.transAxes, fontsize=14, verticalalignment='top',
+                    bbox= dict(boxstyle='round', facecolor='white'))
+            #ax.legend(loc='upper left')
+        fig.suptitle('Frequency distribution', fontsize=14, y=0.99)
         fig.tight_layout()
 
         return fig
 
     def plot_damping_distribution(self):
-        fig, axs = plt.subplots(5, 4, figsize=(20, 20))
+        fig, axs = plt.subplots(5, 4, figsize=(20, 20), dpi=300)
         axs = axs.ravel()
         for i, ax in enumerate(axs):
             damp = self.get_damping_from_trace(i)
@@ -101,19 +112,20 @@ class ModeTrace:
                 continue
             damp_mode = np.array(list(zip(*damp))[1])
             ax.hist(damp_mode, 20)
+            ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
         fig.suptitle('Damping distribution', fontsize=20, y=0.99)
         fig.tight_layout()
 
         return fig
 
     def plot_freq_vs_temp_corr(self, temps):
-        fig, axs = plt.subplots(5, 4, figsize=(20, 20))
+        fig, axs = plt.subplots(5, 4, figsize=(20, 20), dpi=300)
         axs = axs.ravel()
         for i, ax in enumerate(axs):
             freqs = self.get_frequencies_from_trace(i)
             ax.set_title('Mode ' + str(i + 1)+ ' - ' + str(self.mode_type[i]))
             ax.set_xlabel('f [Hz]')
-            ax.set_ylabel('Temperature')
+            ax.set_ylabel('Temperature [$^\circ$C]')
             if len(freqs) == 0:
                 continue
             indexes = np.array(list(zip(*freqs))[0])
@@ -124,11 +136,18 @@ class ModeTrace:
             b, a = np.polyfit(np.array(freqs_mode), np.array(temps_for_mode), deg=1)
             xseq = np.linspace(0, 10, num=len(temps_for_mode))
 
+            # Pearson correlation coefficient
+            corr = sp.stats.linregress(np.array(freqs_mode), np.array(temps_for_mode))
+
             ax.scatter(np.array(freqs_mode), np.array(temps_for_mode), alpha=0.7)
             ax.plot(xseq, a + b * xseq, color='red')
             ax.set_xlim([np.mean(freqs_mode) - np.std(freqs_mode) * 5,
                          np.mean(freqs_mode) + np.std(freqs_mode) * 5])
+            ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
             ax.set_ylim([-15, 10])
+            text = 'r = ' + f"{corr.rvalue:.2f}"
+            ax.text(0.72, 0.95, text, transform=ax.transAxes, fontsize=14, verticalalignment='top',
+                    bbox=dict(boxstyle='round', facecolor='white'))
 
         fig.suptitle('Frequency vs temperature correlation', fontsize=20, y=0.99)
         fig.tight_layout()
@@ -136,7 +155,7 @@ class ModeTrace:
         return fig
 
     def plot_damp_vs_wind_corr(self, wind):
-        fig, axs = plt.subplots(5, 4, figsize=(20, 20))
+        fig, axs = plt.subplots(5, 4, figsize=(20, 20), dpi=300)
         axs = axs.ravel()
         for i, ax in enumerate(axs):
             damp = self.get_damping_from_trace(i)
@@ -153,11 +172,17 @@ class ModeTrace:
             b, a = np.polyfit(np.array(damp_mode), np.array(wind_for_mode), deg=1)
             xseq = np.linspace(0, 10, num=len(wind_for_mode))
 
+            # Pearson correlation coefficient
+            corr = sp.stats.linregress(np.array(damp_mode), np.array(wind_for_mode))
+
             ax.scatter(np.array(damp_mode), np.array(wind_for_mode), alpha=0.7)
             ax.plot(xseq, a + b * xseq, color='red')
-            ax.set_xlim([0,
-                         np.mean(damp_mode) + np.std(damp_mode) * 5])
+            ax.set_xlim([0, np.mean(damp_mode) + np.std(damp_mode) * 5])
+            ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
             ax.set_ylim([0, 30])
+            text = 'r = ' + f"{corr.rvalue:.2f}"
+            ax.text(0.72, 0.95, text, transform=ax.transAxes, fontsize=14, verticalalignment='top',
+                    bbox=dict(boxstyle='round', facecolor='white'))
 
         fig.suptitle('Damping vs wind correlation', fontsize=20, y=0.99)
         fig.tight_layout()
