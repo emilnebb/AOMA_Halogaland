@@ -309,6 +309,36 @@ class FEM_result_loader:
         phi = np.array(self.hf.get('phi'))[:, self.deck_modes_idx]
         self.phi = phi[sensor_indexes, :]
 
+        nodecoord = np.array(self.hf.get('nodecoord'))
+        node_deck = np.arange(1004, 1576 + 1, 1)
+        # Create list index of nodes in bridge deck
+        index_node_deck = []
+
+        for k in np.arange(len(node_deck)):
+            index_node_deck.append(np.argwhere(node_deck[k] == nodecoord[:, 0])[0, 0])
+
+        nodecoord_deck = nodecoord[index_node_deck, :]
+
+        # Create list of index of y-DOFs,z-DOFs, and t-DOFs in bridge deck
+        index_y = []
+        index_z = []
+        index_t = []
+
+        for k in np.arange(len(node_deck)):
+            str_y = str(node_deck[k]) + '_U2'
+            index_y.append(phi_label.index(str_y))
+
+            str_z = str(node_deck[k]) + '_U3'
+            index_z.append(phi_label.index(str_z))
+
+            str_t = str(node_deck[k]) + '_UR1'
+            index_t.append(phi_label.index(str_t))
+
+        self.phi_y = phi[index_y, :]
+        self.phi_z = phi[index_z, :]
+        self.phi_t = phi[index_t, :]
+        self.x_plot = nodecoord_deck[:, 1]  # x-coordinate of deck nodes
+
     def get_all_modes(self):
 
         modes = []
