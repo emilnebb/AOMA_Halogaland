@@ -70,13 +70,13 @@ class ModeTrace:
     def get_damping_from_trace(self, trace):
         traces = self.mode_trace[trace,:]
 
-        freqs = []
+        damps = []
 
         for i in range(len(traces)):
             if isinstance(traces[i], dl.Mode):
-                freqs.append((i, traces[i].damping))
+                damps.append(traces[i].damping)
 
-        return freqs
+        return damps
 
     def plot_frequency_distribution(self):
         fig, axs = plt.subplots(5, 4, figsize=(20, 20), dpi=300)
@@ -202,10 +202,12 @@ def plotModeShapeAOMA(tracer: ModeTrace, type ='Vertical'):
                 all_modeshapes[i,j,:] = tracer.mode_trace[i,j].mode_shape
 
     f_mean = []
+    xi_mean = []
     ref_phi = np.zeros([48, len(tracer.reference_modes)])
     for i in range(len(tracer.reference_modes)):
         ref_phi[:,i] = tracer.reference_modes[i].mode_shape
         f_mean.append(np.mean(tracer.get_frequencies_from_trace(i)))
+        xi_mean.append(100*np.mean(tracer.get_damping_from_trace(i)))
 
     num = tracer.mode_type.count(type)
 
@@ -251,9 +253,11 @@ def plotModeShapeAOMA(tracer: ModeTrace, type ='Vertical'):
                 if np.sum(np.abs(phi_y[:, i] - phi_y_ref[:, i]*factor_ref)) > 5.0:
                     phi_y[:, i] = phi_y[:, i]*(-1)
 
-                axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_y[:, i], np.array([0])))*factor, color='tab:red', alpha = 0.05)
+                axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_y[:, i], np.array([0])))
+                                                    *factor, color='tab:red', alpha = 0.05)
                 axs[int(np.floor(j / 2)), j % 2].set_title(
-                    'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.2f}" + ' Hz')
+                    'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.3f}" + ' Hz,'
+                                                                ' $\overline{\xi}_n$ = ' + f"{xi_mean[i]:.1f}" +'%')
                 axs[int(np.floor(j / 2)), j % 2].grid()
                 j += 1
             elif tracer.mode_type[i] == 'Vertical' and type == 'Vertical':
@@ -263,9 +267,11 @@ def plotModeShapeAOMA(tracer: ModeTrace, type ='Vertical'):
                 if np.sum(np.abs(phi_z[:, i] - phi_z_ref[:, i]*factor_ref)) > 3.0:
                     phi_z[:, i] = phi_z[:, i]*(-1)
 
-                axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_z[:, i], np.array([0])))*factor, color='tab:blue', alpha = 0.05)
+                axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_z[:, i], np.array([0])))
+                                                    *factor, color='tab:blue', alpha = 0.05)
                 axs[int(np.floor(j / 2)), j % 2].set_title(
-                    'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.2f}" + ' Hz')
+                    'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.3f}" + ' Hz,'
+                                                                ' $\overline{\xi}_n$ = ' + f"{xi_mean[i]:.1f}" + '%')
                 axs[int(np.floor(j / 2)), j % 2].grid()
                 j += 1
             elif tracer.mode_type[i] == 'Torsional' and type == 'Torsional':
@@ -275,9 +281,11 @@ def plotModeShapeAOMA(tracer: ModeTrace, type ='Vertical'):
                 if np.sum(np.abs(phi_t[:, i] - phi_t_ref[:, i]*factor_ref)) > 0.5:
                     phi_t[:, i] = phi_t[:, i]*(-1)
 
-                axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_t[:, i], np.array([0])))*factor, color='tab:orange', alpha = 0.05)
+                axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_t[:, i], np.array([0])))
+                                                    *factor, color='tab:orange', alpha = 0.05)
                 axs[int(np.floor(j / 2)), j % 2].set_title(
-                    'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.2f}" + ' Hz')
+                    'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.3f}" + ' Hz,'
+                                                                ' $\overline{\xi}_n$ = ' + f"{xi_mean[i]:.1f}" + '%')
                 axs[int(np.floor(j / 2)), j % 2].grid()
                 j += 1
 
