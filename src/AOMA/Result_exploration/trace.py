@@ -5,6 +5,7 @@ import dataloader_halogaland.dataloader as dl
 from dataloader_halogaland.plot import plotModeShape
 from strid.utils import modal_assurance_criterion
 import scipy as sp
+import koma.modal as modal
 
 
 
@@ -62,7 +63,7 @@ class ModeTrace:
 
         for i in range(len(traces)):
             if isinstance(traces[i], dl.Mode):
-                freqs.append((i, traces[i].frequency))
+                freqs.append(traces[i].frequency)
 
         return freqs
 
@@ -190,3 +191,99 @@ class ModeTrace:
         return fig
 
 
+def plotModeShapeAOMA(tracer: ModeTrace, type ='Vertical'):
+
+    all_modeshapes = np.array(np.empty([tracer.mode_trace.shape[0], tracer.mode_trace.shape[1],
+                                    48]), dtype=np.float)
+
+    for i in range(tracer.mode_trace.shape[0]):
+        for j in range(tracer.mode_trace.shape[1]):
+            if isinstance(tracer.mode_trace[i,j], dl.Mode):
+                all_modeshapes[i,j,:] = tracer.mode_trace[i,j].mode_shape
+
+    f_mean = []
+    ref_phi = np.zeros([48, len(tracer.reference_modes)])
+    for i in range(len(tracer.reference_modes)):
+        ref_phi[:,i] = tracer.reference_modes[i].mode_shape
+        f_mean.append(np.mean(tracer.get_frequencies_from_trace(i)))
+
+    num = tracer.mode_type.count(type)
+
+    # Plot
+    fig, axs = plt.subplots(int(np.ceil(num/2)), 2, figsize=(20, int(np.ceil(num/2))*3), dpi=300)
+    x = np.array([-572.5, -420, -300, -180, -100, 0, 100, 260, 420,
+                          572.5])  # Sensor x-coordinates - [TOWER, A03, A04, A05, A06, A07, A08, A09, A10, TOWER]
+    B = 18.6  # Width of bridge girder
+
+    phi_y_ref = ref_phi[16:32, :]
+    phi_z_ref = ref_phi[32:48, :]
+
+    phi_y_ref = (modal.maxreal((phi_y_ref[::2, :] + phi_y_ref[1::2, :]) / 2))
+    phi_z_ref = (modal.maxreal((phi_z_ref[::2, :] + phi_z_ref[1::2, :]) / 2))
+    phi_t_ref = (modal.maxreal((-ref_phi[32:40, :] + ref_phi[40:48, :]) / B))
+
+    for a in range(all_modeshapes.shape[1]):
+
+        phi = all_modeshapes[:,a,:].transpose()
+
+        phi_y = phi[16:32, :]
+        phi_z = phi[32:48, :]
+
+        phi_y = (modal.maxreal((phi_y[::2, :] + phi_y[1::2, :]) / 2))
+        phi_z = (modal.maxreal((phi_z[::2, :] + phi_z[1::2, :]) / 2))
+
+        phi_t = (modal.maxreal((-phi[32:40, :] + phi[40:48, :]) / B))
+
+
+        j = 0
+        for i in range(len(tracer.reference_modes)):
+            axs[int(np.floor(j / 2)), j % 2].set_xlabel('x[m]')
+            axs[int(np.floor(j / 2)), j % 2].set_ylim([-1, 1])
+            axs[int(np.floor(j / 2)), j % 2].set_xlim([-600, 600])
+            axs[int(np.floor(j / 2)), j % 2].set_xticks([-600, -300, 0, 300, 600])
+            axs[int(np.floor(j / 2)), j % 2].set_yticks([-1, -0.5, 0, 0.5, 1])
+
+
+            if tracer.mode_type[i] == 'Horizontal' and type == 'Horizontal':
+                factor = 1 / np.max(np.abs(phi_y[:, i]))
+                factor_ref = 1 / np.max(np.abs(phi_y_ref[:, i]))
+
+                if np.sum(np.abs(phi_y[:, i] - phi_y_ref[:, i]*factor_ref)) > 5.0:
+                    phi_y[:, i] = phi_y[:, i]*(-1)
+
+                axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_y[:, i], np.array([0])))*factor, color='tab:red', alpha = 0.05)
+                axs[int(np.floor(j / 2)), j % 2].set_title(
+                    'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.2f}" + ' Hz')
+                axs[int(np.floor(j / 2)), j % 2].grid()
+                j += 1
+            elif tracer.mode_type[i] == 'Vertical' and type == 'Vertical':
+                factor = 1 / np.max(np.abs(phi_z[:, i]))
+                factor_ref = 1 / np.max(np.abs(phi_z_ref[:, i]))
+
+                if np.sum(np.abs(phi_z[:, i] - phi_z_ref[:, i]*factor_ref)) > 3.0:
+                    phi_z[:, i] = phi_z[:, i]*(-1)
+
+                axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_z[:, i], np.array([0])))*factor, color='tab:blue', alpha = 0.05)
+                axs[int(np.floor(j / 2)), j % 2].set_title(
+                    'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.2f}" + ' Hz')
+                axs[int(np.floor(j / 2)), j % 2].grid()
+                j += 1
+            elif tracer.mode_type[i] == 'Torsional' and type == 'Torsional':
+                factor = 1 / np.max(np.abs(phi_t[:, i]))
+                factor_ref = 1 / np.max(np.abs(phi_t_ref[:, i]))
+
+                if np.sum(np.abs(phi_t[:, i] - phi_t_ref[:, i]*factor_ref)) > 0.5:
+                    phi_t[:, i] = phi_t[:, i]*(-1)
+
+                axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_t[:, i], np.array([0])))*factor, color='tab:orange', alpha = 0.05)
+                axs[int(np.floor(j / 2)), j % 2].set_title(
+                    'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.2f}" + ' Hz')
+                axs[int(np.floor(j / 2)), j % 2].grid()
+                j += 1
+
+    if num % 2:
+        fig.delaxes(axs[int(np.ceil(num/2))-1, 1])
+
+    fig.tight_layout()
+
+    return  fig
