@@ -218,24 +218,22 @@ def plotModeShapeAOMA(tracer: ModeTrace, type ='Vertical'):
     B = 18.6  # Width of bridge girder
 
     phi_y_ref = ref_phi[16:32, :]
-    phi_z_ref = ref_phi[32:48, :]
+    phi_z_ref_temp = ref_phi[32:48, :]
 
     phi_y_ref = (modal.maxreal((phi_y_ref[::2, :] + phi_y_ref[1::2, :]) / 2))
-    phi_z_ref = (modal.maxreal((phi_z_ref[::2, :] + phi_z_ref[1::2, :]) / 2))
-    phi_t_ref = (modal.maxreal((-ref_phi[32:40, :] + ref_phi[40:48, :]) / B))
+    phi_z_ref = (modal.maxreal((phi_z_ref_temp[::2, :] + phi_z_ref_temp[1::2, :]) / 2))
+    phi_t_ref = (modal.maxreal((- phi_z_ref_temp[::2, :] + phi_z_ref_temp[1::2, :]) / B))
 
     for a in range(all_modeshapes.shape[1]):
 
-        phi = all_modeshapes[:,a,:].transpose()
+        phi = all_modeshapes[:, a, :].transpose()
 
         phi_y = phi[16:32, :]
-        phi_z = phi[32:48, :]
+        phi_z_temp = phi[32:48, :]
 
         phi_y = (modal.maxreal((phi_y[::2, :] + phi_y[1::2, :]) / 2))
-        phi_z = (modal.maxreal((phi_z[::2, :] + phi_z[1::2, :]) / 2))
-
-        phi_t = (modal.maxreal((-phi[32:40, :] + phi[40:48, :]) / B))
-
+        phi_z = (modal.maxreal((phi_z_temp[::2, :] + phi_z_temp[1::2, :]) / 2))
+        phi_t = (modal.maxreal((-phi_z_temp[::2, :] + phi_z_temp[1::2, :]) / B))
 
         j = 0
         for i in range(len(tracer.reference_modes)):
@@ -256,8 +254,8 @@ def plotModeShapeAOMA(tracer: ModeTrace, type ='Vertical'):
                 axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_y[:, i], np.array([0])))
                                                     *factor, color='tab:red', alpha = 0.05)
                 axs[int(np.floor(j / 2)), j % 2].set_title(
-                    'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.3f}" + ' Hz,'
-                                                                ' $\overline{\xi}_n$ = ' + f"{xi_mean[i]:.1f}" +'%')
+                    'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.3f}" + ' Hz, '
+                                                                '$\overline{\\xi}_n$ = ' + f"{xi_mean[i]:.1f}" +'%')
                 axs[int(np.floor(j / 2)), j % 2].grid()
                 j += 1
             elif tracer.mode_type[i] == 'Vertical' and type == 'Vertical':
@@ -271,21 +269,21 @@ def plotModeShapeAOMA(tracer: ModeTrace, type ='Vertical'):
                                                     *factor, color='tab:blue', alpha = 0.05)
                 axs[int(np.floor(j / 2)), j % 2].set_title(
                     'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.3f}" + ' Hz,'
-                                                                ' $\overline{\xi}_n$ = ' + f"{xi_mean[i]:.1f}" + '%')
+                                                                ' $\overline{\\xi}_n$ = ' + f"{xi_mean[i]:.1f}" + '%')
                 axs[int(np.floor(j / 2)), j % 2].grid()
                 j += 1
             elif tracer.mode_type[i] == 'Torsional' and type == 'Torsional':
                 factor = 1 / np.max(np.abs(phi_t[:, i]))
                 factor_ref = 1 / np.max(np.abs(phi_t_ref[:, i]))
 
-                if np.sum(np.abs(phi_t[:, i] - phi_t_ref[:, i]*factor_ref)) > 0.5:
+                if np.sum(np.abs(phi_t[:, i] - phi_t_ref[:, i]*factor_ref)) > 5.0:
                     phi_t[:, i] = phi_t[:, i]*(-1)
 
                 axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_t[:, i], np.array([0])))
                                                     *factor, color='tab:orange', alpha = 0.05)
                 axs[int(np.floor(j / 2)), j % 2].set_title(
                     'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.3f}" + ' Hz,'
-                                                                ' $\overline{\xi}_n$ = ' + f"{xi_mean[i]:.1f}" + '%')
+                                                                ' $\overline{\\xi}_n$ = ' + f"{xi_mean[i]:.1f}" + '%')
                 axs[int(np.floor(j / 2)), j % 2].grid()
                 j += 1
 
