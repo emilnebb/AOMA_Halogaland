@@ -20,7 +20,7 @@ class ModeTrace:
             self.reference_modes.update(new_mode)
 
         self.numb_analysis = numb_analysis
-        self.mode_trace =  np.empty(shape=[len(self.reference_modes), self.numb_analysis], dtype=object)
+        self.mode_trace = np.empty(shape=[len(self.reference_modes), self.numb_analysis], dtype=object)
         self.simcrit = simcrit
         self.mode_type = ['Horizontal', 'Vertical', 'Horizontal', 'Vertical', 'Vertical',
                           'Vertical', 'Horizontal', 'Vertical', 'Vertical', 'Horizontal',
@@ -63,7 +63,7 @@ class ModeTrace:
 
         for i in range(len(traces)):
             if isinstance(traces[i], dl.Mode):
-                freqs.append(traces[i].frequency)
+                freqs.append((i, traces[i].frequency))
 
         return freqs
 
@@ -74,7 +74,7 @@ class ModeTrace:
 
         for i in range(len(traces)):
             if isinstance(traces[i], dl.Mode):
-                damps.append(traces[i].damping)
+                damps.append((i, traces[i].damping))
 
         return damps
 
@@ -205,9 +205,9 @@ def plotModeShapeAOMA(tracer: ModeTrace, type ='Vertical'):
     xi_mean = []
     ref_phi = np.zeros([48, len(tracer.reference_modes)])
     for i in range(len(tracer.reference_modes)):
-        ref_phi[:,i] = tracer.reference_modes[i].mode_shape
-        f_mean.append(np.mean(tracer.get_frequencies_from_trace(i)))
-        xi_mean.append(100*np.mean(tracer.get_damping_from_trace(i)))
+        ref_phi[:, i] = tracer.reference_modes[i].mode_shape
+        f_mean.append(np.mean(np.array(tracer.get_frequencies_from_trace(i)[:])[:, 1]))
+        xi_mean.append(100*np.mean(np.array(tracer.get_damping_from_trace(i)[:])[:, 1]))
 
     num = tracer.mode_type.count(type)
 
