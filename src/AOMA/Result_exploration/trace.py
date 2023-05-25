@@ -38,7 +38,6 @@ class ModeTrace:
             for candidate in candidate_modes:
                 delta_f = np.abs(ref_mode.frequency - candidate.frequency)/\
                                     np.max([ref_mode.frequency, candidate.frequency])
-                print(candidate.mode_shape.shape)
                 mac_1 = 1 - modal_assurance_criterion(ref_mode.mode_shape, candidate.mode_shape[indexes])
                 if delta_f < f_tol and mac_1 < mac_tol:
                     if not isinstance(self.mode_trace[key, period], dl.Mode):
@@ -48,7 +47,7 @@ class ModeTrace:
                         competitor = self.mode_trace[key, period]
                         comp_delta_f = np.abs(ref_mode.frequency - competitor.frequency)/\
                                     np.max([ref_mode.frequency, competitor.frequency])
-                        comp_mac_1 = 1 - modal_assurance_criterion(ref_mode.mode_shape, competitor.mode_shape)
+                        comp_mac_1 = 1 - modal_assurance_criterion(ref_mode.mode_shape, competitor.mode_shape[indexes])
                         if (delta_f < comp_delta_f and
                                 mac_1 < comp_mac_1):
                             self.mode_trace[key, period] = candidate
@@ -271,12 +270,12 @@ class ModeTrace:
 def plotModeShapeAOMA(tracer: ModeTrace, FEM_loader: dl.FEM_result_loader, type ='Vertical'):
 
     all_modeshapes = np.array(np.empty([tracer.mode_trace.shape[0], tracer.mode_trace.shape[1],
-                                    48]), dtype=np.float)
+                                    len(tracer.mode_trace[0,0].mode_shape)]), dtype=np.float)
 
     for i in range(tracer.mode_trace.shape[0]):
         for j in range(tracer.mode_trace.shape[1]):
             if isinstance(tracer.mode_trace[i,j], dl.Mode):
-                all_modeshapes[i,j,:] = tracer.mode_trace[i,j].mode_shape
+                all_modeshapes[i, j, :] = tracer.mode_trace[i, j].mode_shape
 
     f_mean = []
     xi_mean = []
