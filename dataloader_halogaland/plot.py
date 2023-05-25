@@ -2,6 +2,7 @@ import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
 import koma.modal as modal
+from dataloader_halogaland.dataloader import FEM_result_loader
 from mpl_toolkits.mplot3d import axes3d
 import colordict
 color_values = list(colordict.ColorDict(norm=1).values())
@@ -62,7 +63,8 @@ def stabilization_diagram(acceleration, sampling_frequency, Ndivisions, frequenc
 
     ax.set_ylabel("Model order")
     ax.set_xlabel('$f$ [Hz]')
-    ax.set_xticks(np.arange(0, 1, step=0.1))
+    ax.set_xticks(np.arange(0, 1.1, step=0.1))
+    ax.set_xlim([0, 1])
 
     #Creating power spectral density in each direction of motion of the bridge
     Nwindow = np.ceil(len(acceleration) / Ndivisions)  # Length of window/segment
@@ -105,7 +107,7 @@ def stabilization_diagram(acceleration, sampling_frequency, Ndivisions, frequenc
     return fig
 
 def stabilization_diagram_cov_ssi(acceleration, sampling_frequency, Ndivisions,
-                          all_freqs, all_orders):
+                          all_freqs, all_orders, freq_stab=None, orders_stab=None):
     """
     Creates a stabilization diagram with clustered poles labeled with the same color.
     Optional takes the discarded poles and plots them as grey dots in the stabilization diagram.
@@ -122,9 +124,10 @@ def stabilization_diagram_cov_ssi(acceleration, sampling_frequency, Ndivisions,
     """
 
     fig, ax =plt.subplots(figsize=(14, 5), dpi=300)
+    ax.scatter(all_freqs, all_orders, marker= 'o', color='grey')
 
-    if len(all_freqs) > 0 and len(all_orders) > 0:
-        ax.scatter(all_freqs, all_orders, marker= 'o', color='grey')
+    if not (freq_stab is None) and not (orders_stab is None):
+        ax.scatter(freq_stab, orders_stab, marker='o', color='blue')
 
     ax.set_ylabel("Model order")
     ax.set_xlabel('$f$ [Hz]')
@@ -182,7 +185,7 @@ def plotModeShape(phi, i_phi_plot):
     """
     B = 18.6  # Width of bridge girder
 
-    phi_x = phi[:16, :]
+    phi_x = phi[:16]
     phi_y = phi[16:32, :]
     phi_z = phi[32:48, :]
 
@@ -228,36 +231,61 @@ def plotModeShape(phi, i_phi_plot):
 
     return fig
 
-class BridgeModelHalogaland:
+def plotModeShapeFEM(FEM_loader: FEM_result_loader, type='Vertical'):
 
-    def __init__(self, eigenfrequencies=None, modeshapes=None):
-        self.frequencies = eigenfrequencies
-        self.modeshapes = modeshapes
+    f = FEM_loader.f
+    phi_y = FEM_loader.phi_y
+    phi_z = FEM_loader.phi_z
+    phi_t = FEM_loader.phi_t
+    x = FEM_loader.x_plot
 
-        B = 18.6
-        sensor_locations_x = np.array([-580, -420, -300, -180, -100, 0, 100, 260, 420, 580])
-        x = np.vstack((sensor_locations_x, sensor_locations_x))
-        y = np.vstack((np.zeros_like(sensor_locations_x), np.ones_like(sensor_locations_x)*B))
-        z = np.array([[30, 33.8, 35.8, 37.9, 39.3, 40, 39.3, 36.5, 33.8, 30],
-                      [30, 33.8, 35.8, 37.9, 39.3, 40, 39.3, 36.5, 33.8, 30]])
-        tower1_cordinates = np.array([[[-580, -580, -580], [-580, -580, -580]],
-                                      [[0, 0, B/2], [B, B, B/2]],
-                                      [[0, 30, 170], [0, 30, 170]]])
-        tower2_cordinates = np.array([[[580, 580, 580], [580, 580, 580]],
-                                      [[0, 0, B / 2], [B, B, B / 2]],
-                                      [[0, 30, 170], [0, 30, 170]]])
+    num = FEM_loader.mode_type.count(type)
 
-        self.base_figure = plt.figure(figsize=(14, 5), dpi=700)
-        ax = self.base_figure.add_subplot(projection='3d')
-        ax.plot_wireframe(x, y, z, rstride=1, cstride=1, lw=0.4, color='black')
-        ax.plot_wireframe(tower1_cordinates[0,:,:], tower1_cordinates[1,:,:], tower1_cordinates[2,:,:], lw=0.5, color='black')
-        ax.plot_wireframe(tower2_cordinates[0, :, :], tower2_cordinates[1, :, :], tower2_cordinates[2, :, :], lw=0.5, color='black')
-        ax.axis('equal')
-        #ax.set(xlim=(-600, 600), ylim=(-2, 20))
+    # Plot
+    fig, axs = plt.subplots(int(np.ceil(num/2)), 2, figsize=(20, int(np.ceil(num/2))*3), dpi=300)
+
+    j = 0
+    for i in range(len(f)):
+        axs[int(np.floor(j / 2)), j % 2].set_xlabel('x[m]')
+        axs[int(np.floor(j / 2)), j % 2].set_ylim([-1, 1])
+        axs[int(np.floor(j / 2)), j % 2].set_xlim([-600, 600])
+        axs[int(np.floor(j / 2)), j % 2].set_xticks([-600, -300, 0, 300, 600])
+        axs[int(np.floor(j / 2)), j % 2].set_yticks([-1, -0.5, 0, 0.5, 1])
 
 
-    def show_underformed_geometry(self):
-        self.base_figure.show()
+        if FEM_loader.mode_type[i] == 'Horizontal' and type == 'Horizontal':
+            factor = 1 / np.max(np.abs(phi_y[:, i]))
+            axs[int(np.floor(j/2)), j % 2].plot(x, phi_y[:, i]*factor, color='black')
+            axs[int(np.floor(j / 2)), j % 2].set_title(
+                'Mode ' + str(i + 1) + ' - ' + type + '\n $f_n$ = ' + f"{f[i]:.3f}" + ' Hz')
+            axs[int(np.floor(j / 2)), j % 2].grid()
+            j += 1
+        elif FEM_loader.mode_type[i] == 'Vertical' and type == 'Vertical':
+            factor = 1 / np.max(np.abs(phi_z[:, i]))
+            axs[int(np.floor(j/2)), j % 2].plot(x, phi_z[:, i]*factor, color='black')
+            axs[int(np.floor(j / 2)), j % 2].set_title(
+                'Mode ' + str(i + 1) + ' - ' + type + '\n $f_n$ = ' + f"{f[i]:.3f}" + ' Hz')
+            axs[int(np.floor(j / 2)), j % 2].grid()
+            j += 1
+        elif FEM_loader.mode_type[i] == 'Torsional' and type == 'Torsional':
+            factor = 1 / np.max(np.abs(phi_t[:, i]))
+            axs[int(np.floor(j/2)), j % 2].plot(x, phi_t[:, i]*factor, color='black')
+            axs[int(np.floor(j / 2)), j % 2].set_title(
+                'Mode ' + str(i + 1) + ' - ' + type + '\n $f_n$ = ' + f"{f[i]:.3f}" + ' Hz')
+            axs[int(np.floor(j / 2)), j % 2].grid()
+            j += 1
+        elif FEM_loader.mode_type[i] == 'Cable' and type == 'Cable':
+            factor = 1 / np.max(np.abs(phi_y[:, i]))
+            axs[int(np.floor(j / 2)), j % 2].plot(x, phi_y[:, i] * factor, color='black')
+            axs[int(np.floor(j / 2)), j % 2].set_title(
+                'Mode ' + str(i + 1) + ' - ' + type + '\n $f_n$ = ' + f"{f[i]:.3f}" + ' Hz')
+            axs[int(np.floor(j / 2)), j % 2].grid()
+            j += 1
 
-    def get_figure(self):
-        return self.base_figure
+    if num % 2:
+        fig.delaxes(axs[int(np.ceil(num/2))-1, 1])
+
+    fig.tight_layout()
+
+    return  fig
+
