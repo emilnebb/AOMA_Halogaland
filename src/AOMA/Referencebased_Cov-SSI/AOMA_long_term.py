@@ -16,25 +16,49 @@ warnings.filterwarnings('ignore', category=RuntimeWarning)
 
 analysis_length = 30  # minutes
 cutoff_frequency = 1  # Hz
-bridgedeck_only = True
+bridgedeck_only = False
 
 loader = dl.HDF5_dataloader(os.getcwd()+'/../../../../../../../Volumes/LaCie/Halogaland_sixth_try.hdf5',
                             bridgedeck_only=bridgedeck_only)
 
-# Parameters
+output_path = os.getcwd() + '/results/output_AOMA_hangers.h5'
+
+# Hyperparameters
 i = 50  # number of block rows
-s = 6
+s = 1
 fs = 2
-orders = np.arange(2, 100+2, 2)  # orders to perform system
-stabcrit = {'freq': 0.05, 'damping': 0.1, 'mac': 0.1}  # Default
+orders = np.arange(2, 200+2, 2)  # orders to perform system
+stabcrit = {'freq': 0.2, 'damping': 0.2, 'mac': 0.5}  # Default
+prob_threshold = 0.99
+min_cluster_size = 50
+min_samples = 20
+scaling={'mac':1.0, 'lambda_real':1.0, 'lambda_imag': 1.0}
+
+# Write hyperparameters as attributes to output file
+with h5py.File(output_path, 'a') as hdf:
+    hdf.attrs['i'] = i
+    hdf.attrs['s'] = s
+    hdf.attrs['order'] = np.max(orders)
+    hdf.attrs['stabcrit_freq'] = stabcrit['freq']
+    hdf.attrs['stabcrit_damping'] = stabcrit['damping']
+    hdf.attrs['stabcrit_mac'] = stabcrit['mac']
+    hdf.attrs['prob_threshold'] = prob_threshold
+    hdf.attrs['min_cluster_size'] = min_cluster_size
+    hdf.attrs['min_samples'] = min_samples
+    hdf.attrs['scaling_mac'] = scaling['mac']
+    hdf.attrs['scaling_lambda_real'] = scaling['lambda_real']
+    hdf.attrs['scaling_lambda_imag'] = scaling['lambda_imag']
+    hdf.attrs['analysis_length [min]'] = analysis_length
+    hdf.attrs['cutoff_frequency'] = cutoff_frequency
+    hdf.attrs['bridgedeck_only'] = bridgedeck_only
 
 if bridgedeck_only:
     ix_references_y = (np.array([0, 2, 4, 6, 8, 10, 12, 14]) + 16)
     ix_references_z = (np.array([0, 2, 4, 6, 8, 10, 12, 14]) + 32)
     ix_references = np.concatenate((ix_references_y, ix_references_z)).tolist()
 else:
-    ix_references_y = (np.array([1, 3, 5, 7, 11, 13, 17, 19]) + 22)
-    ix_references_z = (np.array([1, 3, 5, 7, 11, 13, 17, 19]) + 44)
+    ix_references_y = (np.array([0, 2, 4, 6, 8, 10, 12, 14]) + 20)
+    ix_references_z = (np.array([0, 2, 4, 6, 8, 10, 12, 14]) + 40)
     ix_references = np.concatenate((ix_references_y, ix_references_z)).tolist()
 
 
@@ -44,7 +68,7 @@ number_in_sample = fs*60*analysis_length
 
 skipped = 0
 for period in range(number_of_periods-44):
-    #period = period + 44
+    period = period + 44
     acc = loader.load_all_acceleration_data(loader.periods[period], preprosess=True,
                                             cutoff_frequency=cutoff_frequency, filter_order=10)
 
@@ -84,9 +108,10 @@ for period in range(number_of_periods-44):
                                     indicator='freq', return_both_conjugates=False)
 
             # HDBSCAN
-            pole_clusterer = koma.clustering.PoleClusterer(lambd_stab, phi_stab, orders_stab, min_cluster_size=10,
-                                            min_samples=10, scaling={'mac':1.0, 'lambda_real':1.0, 'lambda_imag': 1.0})
-            prob_threshold = 0.5
+            pole_clusterer = koma.clustering.PoleClusterer(lambd_stab, phi_stab, orders_stab,
+                                                           min_cluster_size=min_cluster_size,
+                                            min_samples=min_samples, scaling=scaling)
+
             args = pole_clusterer.postprocess(prob_threshold=prob_threshold, normalize_and_maxreal=True)
 
             xi_auto, omega_n_auto, phi_auto, order_auto, probs_auto, ixs_auto = koma.clustering.group_clusters(*args)
@@ -128,10 +153,10 @@ for period in range(number_of_periods-44):
             # Save stabilization plot
             stab_diag = stabilization_diagram(acc[j], fs, 2, (np.array(omega_n_auto) / 2 / np.pi), np.array(order_auto),
                                               all_freqs=np.abs(lambd_stab) / 2 / np.pi, all_orders=orders_stab)
-            plt.savefig("plots/stab_diag/min_size_10/stabilization_diagram_" + str(timestamp) + ".jpg")
+            plt.savefig("plots/stab_diag/hangers/stabilization_diagram_" + str(timestamp) + ".jpg")
 
             # Write results to h5 file
-            with h5py.File(os.getcwd() + '/results/output_AOMA_min_size_10.h5', 'a') as hdf:
+            with h5py.File(output_path, 'a') as hdf:
                 G1 = hdf.create_group(timestamp)
 
                 # Write results
