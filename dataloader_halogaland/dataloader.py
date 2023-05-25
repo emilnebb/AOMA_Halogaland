@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from nptdms import TdmsFile #docs: https://nptdms.readthedocs.io/en/stable/index.html
 import h5py
@@ -87,9 +88,9 @@ class HDF5_dataloader:
                                          'A07-1', 'A07-2', 'A08-1', 'A08-2', 'A09-1',
                                          'A09-2', 'A10-1', 'A10-2']  # bridge deck only
         else:
-            self.acceleration_sensors = ['A01-1', 'A03-1', 'A03-2', 'A04-1', 'A04-2', 'A05-1', 'A05-2', 'A06-1',
-                                         'A06-2', 'A06-3', 'A06-4', 'A07-1', 'A07-2', 'A08-1', 'A08-2', 'A08-3',
-                                         'A08-4', 'A09-1', 'A09-2', 'A10-1', 'A10-2', 'A11-1'] # all acc-sensors
+            self.acceleration_sensors = ['A03-1', 'A03-2', 'A04-1', 'A04-2', 'A05-1', 'A05-2', 'A06-1',
+                                         'A06-2', 'A07-1', 'A07-2', 'A08-1', 'A08-2', 'A09-1', 'A09-2',
+                                         'A10-1', 'A10-2', 'A06-3', 'A06-4', 'A08-3', 'A08-4']  # hangers added
 
         self.wind_sensors = ['W03-7-1', 'W04-15-1', 'W05-17-1', 'W05-18-1', 'W05-19-1', 'W05-19-2', 'W07-28-1',
                              'W10-45-1', 'W10-47-1', 'W10-49-1']
@@ -269,6 +270,32 @@ class HDF5_result_loader:
 
         return temps, mean_wind_speed, max_wind_speed, mean_wind_direction, execution_time
 
+    def get_detection_statistics(self):
+        # TODO: write function description
+
+        modes_in_period = []
+
+        for period in self.periods:
+            modes_in_period.append(len(self.get_modes_in_period(period)))
+
+        modes_in_period = np.array(modes_in_period)
+        avg = np.mean(modes_in_period)
+        max = np.max(modes_in_period)
+        min = np.min(modes_in_period)
+        std = np.std(modes_in_period)
+
+        fig, ax = plt.subplots(figsize=(6, 4), dpi=300)
+        ax.hist(modes_in_period, max-min)
+        ax.set_xticks(np.arange(min, max+1, step=2))
+        ax.set_xlabel('Number of estimated modes in time series')
+        ax.set_ylabel('Number of time series')
+        #plt.grid()
+        ax.xaxis.set_major_locator(plt.MultipleLocator(2))
+        ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
+
+
+        return {'avg': avg, 'std': std, 'max': max, 'min': min}, fig
+
 class FEM_result_loader:
 
     def __init__(self, path: str):
@@ -276,18 +303,18 @@ class FEM_result_loader:
         self.hf = h5py.File(self.path, 'r')
 
         # manually picked bridge deck modes from Abaqus model
-        self.deck_modes_idx = np.array([1, 2, 3, 4, 5, 6, 7, 12, 13, 14, 15, 16, 25, 32, 33,
-                                   34, 40, 45, 48, 50]) - 1
+        self.deck_modes_idx = np.array([1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 16, 19, 23, 25, 32, 33,
+                                   34, 40, 45, 48, 50, 58]) - 1
 
         self.mode_type = ['Horizontal', 'Vertical', 'Horizontal', 'Vertical', 'Vertical',
-                          'Vertical', 'Horizontal', 'Vertical', 'Vertical', 'Horizontal',
-                          'Vertical', 'Torsional', 'Vertical', 'Torsional', 'Horizontal',
-                          'Vertical', 'Vertical', 'Vertical', 'Torsional', 'Vertical']
+                          'Vertical', 'Horizontal', 'Cable', 'Vertical', 'Vertical', 'Horizontal',
+                          'Vertical', 'Torsional', 'Cable', 'Cable', 'Vertical', 'Torsional', 'Horizontal',
+                          'Vertical', 'Vertical', 'Vertical', 'Torsional', 'Vertical', 'Vertical']
 
         self.sensor_labels = ['3080_U1', '2080_U1', '3140_U1', '2140_U1', '3200_U1',
                                  '2200_U1', '3240_U1', '2240_U1', '3290_U1', '2290_U1',
                                  '3340_U1', '2340_U1', '3420_U1', '2420_U1', '3500_U1',
-                                 '2500_U1',
+                                 '2500_U1', 
                                  '3080_U2', '2080_U2', '3140_U2', '2140_U2', '3200_U2',
                                  '2200_U2', '3240_U2', '2240_U2', '3290_U2', '2290_U2',
                                  '3340_U2', '2340_U2', '3420_U2', '2420_U2', '3500_U2',
