@@ -1,11 +1,10 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 from nptdms import TdmsFile
 from python_appendix import get_data as gd # This function works like readAcc, but extracts x-,y-,z-acceleration from an accelerometer pair
 from python_appendix import OMA_functions as OMA
 from python_appendix import time_synchronisation as ts
-from dataloader_halogaland.plot import welch_plot
+from src.AOMA.plot import welch_plot
 
 def main():
 

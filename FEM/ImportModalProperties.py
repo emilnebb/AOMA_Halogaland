@@ -15,7 +15,7 @@ hf = h5py.File('HalogalandModel_exportmodal.h5', 'r')
 
 # Frequencies
 f = np.array(hf.get('f'))
-print(f[:56])
+print(f)
 
 # Generalized mass
 gm = np.array(hf.get('gm'))
@@ -25,6 +25,7 @@ nodecoord = np.array(hf.get('nodecoord'))
 
 # Mode shape matrix for all DOFs (size [6*N_nodes,N_modes])
 phi = np.array(hf.get('phi'))
+print(phi.shape)
 
 # Labels corresponding to each row of phi (each DOF), as a list of strings
 phi_label_temp = np.array(hf.get('phi_label'))
