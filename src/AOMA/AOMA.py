@@ -153,7 +153,7 @@ for period in range(number_of_periods-44):
             # Save stabilization plot
             stab_diag = stabilization_diagram(acc[j], fs, 2, (np.array(omega_n_auto) / 2 / np.pi), np.array(order_auto),
                                               all_freqs=np.abs(lambd_stab) / 2 / np.pi, all_orders=orders_stab)
-            plt.savefig("/../../output/stab_diag/hangers/stabilization_diagram_" + str(timestamp) + ".jpg")
+            plt.savefig("/../../../stab_diag/hangers/stabilization_diagram_" + str(timestamp) + ".jpg")
 
             # Write logs to h5 file
             with h5py.File(output_path, 'a') as hdf:
