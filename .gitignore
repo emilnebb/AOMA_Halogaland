@@ -2,9 +2,8 @@
 .idea
 
 #Data
-Data
-src/AOMA/Numerical_example/results
-src/AOMA/Numerical_example/vibration_data
+data
+FEM
 #Jupyter notebook checkpoints
 
 #files
@@ -12,8 +11,14 @@ src/AOMA/Numerical_example/vibration_data
 .npz
 
 #Packages
+beef
+knutils
+koma
+strid
+python_appendix
 
-#Images
-src/AOMA/plots
-src/data_exploration/spectrum
-src/AOMA/Referencebased_Cov-SSI/plots
+# Outputs
+output
+
+# Other directories
+Sol_Ons
