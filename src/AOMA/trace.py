@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import src.AOMA.dataloader as dl
+import dataloader as dl
 from strid.utils import modal_assurance_criterion
 import scipy as sp
 import koma.modal as modal
@@ -160,7 +160,7 @@ class ModeTrace:
                              np.mean(freqs_mode) + np.std(freqs_mode) * 5])
                 ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
                 ax.set_ylim([-15, 10])
-                text = 'r = ' + f"{corr.rvalue:.2f}"
+                text = '$r$ = ' + f"{corr.rvalue:.2f}"
                 ax.text(0.72, 0.95, text, transform=ax.transAxes, fontsize=14, verticalalignment='top',
                         bbox=dict(boxstyle='round', facecolor='white'))
 
@@ -200,7 +200,7 @@ class ModeTrace:
                 ax.set_xlim([0, np.mean(damp_mode) + np.std(damp_mode) * 5])
                 ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
                 ax.set_ylim([0, 30])
-                text = 'r = ' + f"{corr.rvalue:.2f}"
+                text = '$r$ = ' + f"{corr.rvalue:.2f}"
                 ax.text(0.72, 0.95, text, transform=ax.transAxes, fontsize=14, verticalalignment='top',
                         bbox=dict(boxstyle='round', facecolor='white'))
 
@@ -214,57 +214,57 @@ class ModeTrace:
 
     def plot_AOMA_vs_FEM(self):
 
-        fig, axs = plt.subplots(1, 4, figsize=(20, 5), dpi=300)
+        fig, axs = plt.subplots(2, 2, figsize=(10, 10), dpi=300)
 
         for i in range(len(self.reference_modes)):
 
             if self.mode_type[i] == 'Horizontal':
-                axs[0].plot(self.reference_modes[i].frequency,
+                axs[0, 0].plot(self.reference_modes[i].frequency,
                             np.mean(np.array(self.get_frequencies_from_trace(i)[:])[:, 1]), marker='o', color='r')
-                axs[0].plot([0, 1], [0, 1], transform=axs[0].transAxes, color='black')
-                axs[0].set_xlabel('$f_{FEM}$ [Hz]')
-                axs[0].set_ylabel('$f_{AOMA}$ [Hz]')
-                axs[0].set_title(self.mode_type[i])
-                axs[0].set_xticks(np.arange(0, 1.2, step=0.2))
-                axs[0].set_yticks(np.arange(0, 1.2, step=0.2))
-                axs[0].set_xlim([0, 1])
-                axs[0].set_ylim([0, 1])
+                axs[0, 0].plot([0, 1], [0, 1], transform=axs[0, 0].transAxes, color='black')
+                axs[0, 0].set_xlabel('$f_{FEM}$ [Hz]')
+                axs[0, 0].set_ylabel('$f_{AOMA}$ [Hz]')
+                axs[0, 0].set_title(self.mode_type[i])
+                axs[0, 0].set_xticks(np.arange(0, 1.2, step=0.2))
+                axs[0, 0].set_yticks(np.arange(0, 1.2, step=0.2))
+                axs[0, 0].set_xlim([0, 1])
+                axs[0, 0].set_ylim([0, 1])
 
             elif self.mode_type[i] == 'Vertical':
-                axs[1].plot(self.reference_modes[i].frequency,
+                axs[0, 1].plot(self.reference_modes[i].frequency,
                             np.mean(np.array(self.get_frequencies_from_trace(i)[:])[:, 1]), marker='o', color='r')
-                axs[1].plot([0, 1], [0, 1], transform=axs[1].transAxes, color='black')
-                axs[1].set_xlabel('$f_{FEM}$ [Hz]')
-                axs[1].set_ylabel('$f_{AOMA}$ [Hz]')
-                axs[1].set_title(self.mode_type[i])
-                axs[1].set_xticks(np.arange(0, 1.2, step=0.2))
-                axs[1].set_yticks(np.arange(0, 1.2, step=0.2))
-                axs[1].set_xlim([0, 1.1])
-                axs[1].set_ylim([0, 1.1])
+                axs[0, 1].plot([0, 1], [0, 1], transform=axs[0, 1].transAxes, color='black')
+                axs[0, 1].set_xlabel('$f_{FEM}$ [Hz]')
+                axs[0, 1].set_ylabel('$f_{AOMA}$ [Hz]')
+                axs[0, 1].set_title(self.mode_type[i])
+                axs[0, 1].set_xticks(np.arange(0, 1.2, step=0.2))
+                axs[0, 1].set_yticks(np.arange(0, 1.2, step=0.2))
+                axs[0, 1].set_xlim([0, 1.1])
+                axs[0, 1].set_ylim([0, 1.1])
 
             elif self.mode_type[i] == 'Torsional':
-                axs[2].plot(self.reference_modes[i].frequency,
+                axs[1, 0].plot(self.reference_modes[i].frequency,
                             np.mean(np.array(self.get_frequencies_from_trace(i)[:])[:, 1]), marker='o', color='r')
-                axs[2].plot([0, 1], [0, 1], transform=axs[2].transAxes, color='black')
-                axs[2].set_xlabel('$f_{FEM}$ [Hz]')
-                axs[2].set_ylabel('$f_{AOMA}$ [Hz]')
-                axs[2].set_title(self.mode_type[i])
-                axs[2].set_xticks(np.arange(0, 1.2, step=0.2))
-                axs[2].set_yticks(np.arange(0, 1.2, step=0.2))
-                axs[2].set_xlim([0, 1])
-                axs[2].set_ylim([0, 1])
+                axs[1, 0].plot([0, 1], [0, 1], transform=axs[1, 0].transAxes, color='black')
+                axs[1, 0].set_xlabel('$f_{FEM}$ [Hz]')
+                axs[1, 0].set_ylabel('$f_{AOMA}$ [Hz]')
+                axs[1, 0].set_title(self.mode_type[i])
+                axs[1, 0].set_xticks(np.arange(0, 1.2, step=0.2))
+                axs[1, 0].set_yticks(np.arange(0, 1.2, step=0.2))
+                axs[1, 0].set_xlim([0, 1])
+                axs[1, 0].set_ylim([0, 1])
 
             elif self.mode_type[i] == 'Cable':
-                axs[3].plot(self.reference_modes[i].frequency,
+                axs[1, 1].plot(self.reference_modes[i].frequency,
                             np.mean(np.array(self.get_frequencies_from_trace(i)[:])[:, 1]), marker='o', color='r')
-                axs[3].plot([0, 1], [0, 1], transform=axs[3].transAxes, color='black')
-                axs[3].set_xlabel('$f_{FEM}$ [Hz]')
-                axs[3].set_ylabel('$f_{AOMA}$ [Hz]')
-                axs[3].set_title(self.mode_type[i])
-                axs[3].set_xticks(np.arange(0, 1.2, step=0.2))
-                axs[3].set_yticks(np.arange(0, 1.2, step=0.2))
-                axs[3].set_xlim([0, 1])
-                axs[3].set_ylim([0, 1])
+                axs[1, 1].plot([0, 1], [0, 1], transform=axs[1, 1].transAxes, color='black')
+                axs[1, 1].set_xlabel('$f_{FEM}$ [Hz]')
+                axs[1, 1].set_ylabel('$f_{AOMA}$ [Hz]')
+                axs[1, 1].set_title(self.mode_type[i])
+                axs[1, 1].set_xticks(np.arange(0, 1.2, step=0.2))
+                axs[1, 1].set_yticks(np.arange(0, 1.2, step=0.2))
+                axs[1, 1].set_xlim([0, 1])
+                axs[1, 1].set_ylim([0, 1])
 
         return fig
 
@@ -319,6 +319,8 @@ def plotModeShapeAOMA(tracer: ModeTrace, FEM_loader: dl.FEM_result_loader, type 
         axs[int(np.floor(j / 2)), j % 2].set_xlim([-600, 600])
         axs[int(np.floor(j / 2)), j % 2].set_xticks([-600, -300, 0, 300, 600])
         axs[int(np.floor(j / 2)), j % 2].set_yticks([-1, -0.5, 0, 0.5, 1])
+        axs[int(np.floor(j / 2)), j % 2].vlines([-420, -300, -180, -100, 0, 100, 260, 420], -1, 1, color='grey',
+                                                linestyles=':', alpha=0.5)
 
         if FEM_loader.mode_type[i] == 'Horizontal' and type == 'Horizontal':
             factor = 1 / np.max(np.abs(phi_y_FEM[:, i]))
