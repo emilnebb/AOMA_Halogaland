@@ -120,10 +120,10 @@ class ModeTrace:
         for i, ax in enumerate(axs):
             damp = self.get_damping_from_trace(i)
             ax.set_title('Mode ' + str(i + 1)+ ' - ' + str(self.mode_type[i]))
-            ax.set_xlabel('Damping')
+            ax.set_xlabel('$\\xi$ [%]')
             if len(damp) == 0:
                 continue
-            damp_mode = np.array(list(zip(*damp))[1])
+            damp_mode = np.array(list(zip(*damp))[1])*100
             ax.hist(damp_mode, 20)
             ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
         fig.suptitle('Damping distribution', fontsize=20, y=0.99)
@@ -180,13 +180,13 @@ class ModeTrace:
             if i < len(self.reference_modes):
                 damp = self.get_damping_from_trace(i)
                 ax.set_title('Mode ' + str(i + 1)+ ' - ' + str(self.mode_type[i]))
-                ax.set_xlabel('Damping')
+                ax.set_xlabel('$\\xi$ [%]')
                 ax.set_ylabel('Mean wind speed [m/s]')
                 if len(damp) < 1:
                     continue
                 indexes = np.array(list(zip(*damp))[0])
                 wind_for_mode = wind[indexes]
-                damp_mode = np.array(list(zip(*damp))[1])
+                damp_mode = np.array(list(zip(*damp))[1])*100
 
                 # Find regression line
                 b, a = np.polyfit(np.array(damp_mode), np.array(wind_for_mode), deg=1)
@@ -198,7 +198,7 @@ class ModeTrace:
                 ax.scatter(np.array(damp_mode), np.array(wind_for_mode), alpha=0.7)
                 ax.plot(xseq, a + b * xseq, color='red')
                 ax.set_xlim([0, np.mean(damp_mode) + np.std(damp_mode) * 5])
-                ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
+                ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.2f'))
                 ax.set_ylim([0, 30])
                 text = '$r$ = ' + f"{corr.rvalue:.2f}"
                 ax.text(0.72, 0.95, text, transform=ax.transAxes, fontsize=14, verticalalignment='top',
@@ -368,7 +368,7 @@ def plotModeShapeAOMA(tracer: ModeTrace, FEM_loader: dl.FEM_result_loader, type 
                     phi_y[:, i] = phi_y[:, i]*(-1)
 
                 axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_y[:, i], np.array([0])))
-                                                    *factor, color='tab:red', alpha = 0.05)
+                                                    , color='tab:red', alpha = 0.05)
                 axs[int(np.floor(j / 2)), j % 2].set_title(
                     'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.3f}" + ' Hz, '
                                                                 '$\overline{\\xi}_n$ = ' + f"{xi_mean[i]:.1f}" +'%')
@@ -382,7 +382,7 @@ def plotModeShapeAOMA(tracer: ModeTrace, FEM_loader: dl.FEM_result_loader, type 
                     phi_z[:, i] = phi_z[:, i]*(-1)
 
                 axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_z[:, i], np.array([0])))
-                                                    *factor, color='tab:blue', alpha = 0.05)
+                                                    , color='tab:blue', alpha = 0.05)
                 axs[int(np.floor(j / 2)), j % 2].set_title(
                     'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.3f}" + ' Hz,'
                                                                 ' $\overline{\\xi}_n$ = ' + f"{xi_mean[i]:.1f}" + '%')
@@ -396,7 +396,7 @@ def plotModeShapeAOMA(tracer: ModeTrace, FEM_loader: dl.FEM_result_loader, type 
                     phi_t[:, i] = phi_t[:, i]*(-1)
 
                 axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_t[:, i], np.array([0])))
-                                                    *factor, color='tab:orange', alpha = 0.05)
+                                                    , color='tab:orange', alpha = 0.05)
                 axs[int(np.floor(j / 2)), j % 2].set_title(
                     'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.3f}" + ' Hz,'
                                                                 ' $\overline{\\xi}_n$ = ' + f"{xi_mean[i]:.1f}" + '%')
@@ -410,7 +410,7 @@ def plotModeShapeAOMA(tracer: ModeTrace, FEM_loader: dl.FEM_result_loader, type 
                     phi_y[:, i] = phi_y[:, i]*(-1)
 
                 axs[int(np.floor(j/2)), j % 2].plot(x, np.concatenate((np.array([0]), phi_y[:, i], np.array([0])))
-                                                    *factor, color='tab:green', alpha = 0.05)
+                                                    , color='tab:green', alpha = 0.05)
                 axs[int(np.floor(j / 2)), j % 2].set_title(
                     'Mode ' + str(i + 1) + ' - ' + type + '\n $\overline{f}_n$ = ' + f"{f_mean[i]:.3f}" + ' Hz, '
                                                                 '$\overline{\\xi}_n$ = ' + f"{xi_mean[i]:.1f}" +'%')
@@ -419,6 +419,122 @@ def plotModeShapeAOMA(tracer: ModeTrace, FEM_loader: dl.FEM_result_loader, type 
 
     if num % 2:
         fig.delaxes(axs[int(np.ceil(num/2))-1, 1])
+
+    fig.tight_layout()
+
+    return fig
+
+
+def plotSingleModeAllComponents(tracer: ModeTrace, FEM_loader: dl.FEM_result_loader, mode_i):
+
+    all_modeshapes = np.array(np.empty([tracer.mode_trace.shape[0], tracer.mode_trace.shape[1],
+                                    len(tracer.mode_trace[0,0].mode_shape)]), dtype=np.float)
+
+    for i in range(tracer.mode_trace.shape[0]):
+        for j in range(tracer.mode_trace.shape[1]):
+            if isinstance(tracer.mode_trace[i,j], dl.Mode):
+                all_modeshapes[i, j, :] = tracer.mode_trace[i, j].mode_shape
+
+    f_mean = []
+    xi_mean = []
+    ref_phi = np.zeros([48, len(tracer.reference_modes)])
+    for i in range(len(tracer.reference_modes)):
+        ref_phi[:, i] = tracer.reference_modes[i].mode_shape
+        f_mean.append(np.mean(np.array(tracer.get_frequencies_from_trace(i)[:])[:, 1]))
+        xi_mean.append(100*np.mean(np.array(tracer.get_damping_from_trace(i)[:])[:, 1]))
+
+    num = tracer.mode_type.count(type)
+
+    # Plot
+    fig, axs = plt.subplots(2, 1, figsize=(10,5), dpi=300)
+    x = np.array([-572.5, -420, -300, -180, -100, 0, 100, 260, 420,
+                          572.5])  # Sensor x-coordinates - [TOWER, A03, A04, A05, A06, A07, A08, A09, A10, TOWER]
+    B = 18.6  # Width of bridge girder
+
+    phi_y_ref = ref_phi[16:32, :]
+    phi_z_ref_temp = ref_phi[32:48, :]
+
+    phi_y_ref = (modal.maxreal((phi_y_ref[::2, :] + phi_y_ref[1::2, :]) / 2))
+    phi_z_ref = (modal.maxreal((phi_z_ref_temp[::2, :] + phi_z_ref_temp[1::2, :]) / 2))
+    phi_t_ref = (modal.maxreal((- phi_z_ref_temp[::2, :] + phi_z_ref_temp[1::2, :]) / B))
+
+    # Add plot of reference modes here
+    f = FEM_loader.f
+    phi_y_FEM = FEM_loader.phi_y
+    phi_y_FEM[:, [6, 7, 14, 17]] = phi_y_FEM[:, [6, 7, 14, 17]]*(-1)
+    phi_z_FEM = FEM_loader.phi_z
+    phi_z_FEM[:, [1, 5, 11, 19, 20]] = phi_z_FEM[:, [1, 5, 11, 19, 20]]*(-1)
+    phi_t_FEM = FEM_loader.phi_t
+    phi_t_FEM[:, [16, 21]] = phi_t_FEM[:, [16, 21]]
+    x_FEM = FEM_loader.x_plot
+
+    for ax in axs:
+        ax.set_xlabel('x[m]')
+        ax.set_ylim([-1, 1])
+        ax.set_xlim([-600, 600])
+        ax.set_xticks([-600, -300, 0, 300, 600])
+        ax.set_yticks([-1, -0.5, 0, 0.5, 1])
+        ax.vlines([-420, -300, -180, -100, 0, 100, 260, 420], -1, 1, color='grey',
+                                                linestyles=':', alpha=0.5)
+    """
+    factor = 1 / np.max(np.abs(phi_y_FEM[:, mode_i]))
+    axs[0].plot(x_FEM, phi_y_FEM[:, mode_i] * factor, color='black', alpha=0.5)
+    factor = 1 / np.max(np.abs(phi_z_FEM[:, mode_i]))
+    axs[1].plot(x_FEM, phi_z_FEM[:, mode_i] * factor, color='black', alpha=0.5)
+    factor = 1 / np.max(np.abs(phi_t_FEM[:, mode_i]))
+    axs[2].plot(x_FEM, phi_t_FEM[:, mode_i] * factor, color='black', alpha=0.5)
+    """
+
+    for a in range(all_modeshapes.shape[1]):
+
+        phi = all_modeshapes[:, a, :].transpose()
+
+        phi_x, phi_y, phi_z_temp = np.split(phi, 3, axis=0)
+        phi_y = phi_y[:16, :]
+        phi_z_temp = phi_z_temp[:16, :]
+
+        phi_y = (modal.maxreal((phi_y[::2, :] + phi_y[1::2, :]) / 2))
+        phi_z = (modal.maxreal((phi_z_temp[::2, :] + phi_z_temp[1::2, :]) / 2))
+        phi_t = (modal.maxreal((-phi_z_temp[::2, :] + phi_z_temp[1::2, :]) / B))
+
+        # Horizontal component
+        factor = 1 / np.max(np.abs(phi_y[:, mode_i]))
+        factor_ref = 1 / np.max(np.abs(phi_y_ref[:, mode_i]))
+
+        #if np.sum(np.abs(phi_y[:, mode_i] - phi_y_ref[:, mode_i]*factor_ref)) > 8.0:
+        #    phi_y[:, mode_i] = phi_y[:, mode_i]*(-1)
+
+        axs[0].plot(x, np.concatenate((np.array([0]), phi_y[:, mode_i], np.array([0])))
+                                            , color='tab:red', alpha = 0.05)
+        axs[0].set_title(
+            'Mode ' + str(mode_i + 1) + ' - ' + 'Horizontal component')
+
+        # Vertical component
+        factor = 1 / np.max(np.abs(phi_z[:, mode_i]))
+        factor_ref = 1 / np.max(np.abs(phi_z_ref[:, mode_i]))
+
+        #if np.sum(np.abs(phi_z[:, mode_i] - phi_z_ref[:, mode_i]*factor_ref)) > 5.0:
+        #    phi_z[:, mode_i] = phi_z[:, mode_i]*(-1)
+
+        axs[1].plot(x, np.concatenate((np.array([0]), phi_z[:, mode_i], np.array([0])))
+                                            , color='tab:blue', alpha = 0.05)
+        axs[1].set_title(
+            'Mode ' + str(mode_i + 1) + ' - ' + 'Vertical component')
+
+        """
+                # Torsional component
+        factor = 1 / np.max(np.abs(phi_t[:, mode_i]))
+        factor_ref = 1 / np.max(np.abs(phi_t_ref[:, mode_i]))
+
+        if np.sum(np.abs(phi_t[:, mode_i] - phi_t_ref[:, mode_i]*factor_ref)) > 4.0:
+            phi_t[:, mode_i] = phi_t[:, mode_i]*(-1)
+
+        axs[2].plot(x, np.concatenate((np.array([0]), phi_t[:, mode_i], np.array([0])))
+                                            , color='tab:orange', alpha = 0.05)
+        axs[2].set_title(
+            'Mode ' + str(mode_i + 1) + ' - ' + 'Torsional component')
+        """
+
 
     fig.tight_layout()
 
