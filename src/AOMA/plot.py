@@ -2,7 +2,7 @@ import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
 import koma.modal as modal
-from src.AOMA.dataloader import FEM_result_loader
+from dataloader import FEM_result_loader
 import colordict
 color_values = list(colordict.ColorDict(norm=1).values())
 
@@ -77,9 +77,12 @@ def stabilization_diagram(acceleration, sampling_frequency, Ndivisions, frequenc
 
     B = 18.6
     # Transforming to find y, z, theta component for the sensor pair at the midspan
-    y = (acceleration[:, length + int(np.floor(length/4))] + acceleration[:, length + int(np.floor(length/4)) + n_channels]) / 2
-    z = (acceleration[:, length + int(np.floor(length/4)) + n_channels*2] + acceleration[:, length + int(np.floor(length/4)) + n_channels*3]) / 2
-    theta = (-acceleration[:, length + int(np.floor(length/4)) + n_channels*2] + acceleration[:, length + int(np.floor(length/4)) + n_channels*3]) / B
+    y = (acceleration[:, length + int(np.floor(length/4))] +
+         acceleration[:, length + int(np.floor(length/4)) + n_channels]) / 2
+    z = (acceleration[:, length + int(np.floor(length/4)) + n_channels*2] +
+         acceleration[:, length + int(np.floor(length/4)) + n_channels*3]) / 2
+    theta = (-acceleration[:, length + int(np.floor(length/4)) + n_channels*2] +
+             acceleration[:, length + int(np.floor(length/4)) + n_channels*3]) / B
 
     # Call welch from scipy signal processing
     f, Sy_welch = signal.welch(y, fs=1 / dt, window='hann', nperseg=Nwindow, noverlap=None, nfft=Nfft_pow2,
@@ -98,6 +101,7 @@ def stabilization_diagram(acceleration, sampling_frequency, Ndivisions, frequenc
     ax2.plot(f, Sz_welch, color='blue', label='$PSD\ z-direction$', lw=0.5)
     ax2.plot(f, Stheta_welch*10, color='red', label=r'$PSD\ \theta-direction\ e1$', lw=0.5)
     ax2.set_ylabel("PSD")
+    #ax2.set_yscale('symlog')
     #ax2.legend()
 
     plt.legend()
@@ -145,9 +149,12 @@ def stabilization_diagram_cov_ssi(acceleration, sampling_frequency, Ndivisions,
 
     B = 18.6
     # Transforming to find y, z, theta component for the sensor pair at the midspan
-    y = (acceleration[:, length + int(np.floor(length/4))] + acceleration[:, length + int(np.floor(length/4)) + n_channels]) / 2
-    z = (acceleration[:, length + int(np.floor(length/4)) + n_channels*2] + acceleration[:, length + int(np.floor(length/4)) + n_channels*3]) / 2
-    theta = (-acceleration[:, length + int(np.floor(length/4)) + n_channels*2] + acceleration[:, length + int(np.floor(length/4)) + n_channels*3]) / B
+    y = (acceleration[:, length + int(np.floor(length/4))] + acceleration[:, length + int(np.floor(length/4)) +
+                                                                             n_channels]) / 2
+    z = (acceleration[:, length + int(np.floor(length/4)) + n_channels*2] +
+         acceleration[:, length + int(np.floor(length/4)) + n_channels*3]) / 2
+    theta = (-acceleration[:, length + int(np.floor(length/4)) + n_channels*2] +
+             acceleration[:, length + int(np.floor(length/4)) + n_channels*3]) / B
 
     # Call welch from scipy signal processing
     f, Sy_welch = signal.welch(y, fs=1 / dt, window='hann', nperseg=Nwindow, noverlap=None, nfft=Nfft_pow2,
@@ -175,7 +182,8 @@ def stabilization_diagram_cov_ssi(acceleration, sampling_frequency, Ndivisions,
 def plotModeShape(phi, i_phi_plot):
     """
     Arguments:
-    phi        : mode shape matrix, each column containing mode shape values for x1, x2, y1, y2, z1, z2 at the sensor locations
+    phi        : mode shape matrix, each column containing mode shape values for x1, x2, y1, y2, z1, z2
+                 at the sensor locations
     i_phi_plot : index of which mode shape to plot
     Returns:
     fig        : plot of mode shapes
@@ -231,6 +239,16 @@ def plotModeShape(phi, i_phi_plot):
     return fig
 
 def plotModeShapeFEM(FEM_loader: FEM_result_loader, type='Vertical'):
+    """
+    Plots the mode shapes of the Finite Element Model (FEM) loaded using FEM_result_loader.
+
+    Args:
+        FEM_loader (FEM_result_loader): An instance of the FEM_result_loader class.
+        type (str, optional): The type of mode shape to plot. Defaults to 'Vertical'.
+
+    Returns:
+        matplotlib.figure.Figure: The generated figure containing the mode shape plots.
+    """
 
     f = FEM_loader.f
     phi_y = FEM_loader.phi_y

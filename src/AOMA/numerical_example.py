@@ -1,10 +1,12 @@
-import koma.oma, koma.plot
+import koma.oma
 import numpy as np
 import matplotlib.pyplot as plt
 import koma.clustering
 import geneate_vibration_data
 import strid
 import copy
+
+# Main script for numerical example
 
 path = "/../../data/vibration_data/data_stochastic_3_floor_"
 
@@ -57,11 +59,15 @@ for j in range(number_of_realizations):
         lambdas.append(np.array(lambdas_in_order))
         phis.append(np.array(phis_in_order).transpose())
 
-    lambd_stab, phi_stab, orders_stab, ix_stab = koma.oma.find_stable_poles(lambdas, phis, orders, s, stabcrit=stabcrit, valid_range={'freq': [0, np.inf], 'damping':[0, 0.2]}, indicator='freq', return_both_conjugates=False)
+    lambd_stab, phi_stab, orders_stab, ix_stab = koma.oma.find_stable_poles(lambdas, phis, orders, s,
+                            stabcrit=stabcrit, valid_range={'freq': [0, np.inf], 'damping':[0, 0.2]},
+                            indicator='freq', return_both_conjugates=False)
 
     #Pole clustering
-    pole_clusterer = koma.clustering.PoleClusterer(lambd_stab, phi_stab, orders_stab, min_cluster_size=25, min_samples=10, scaling={'mac':1.0, 'lambda_real':1.0, 'lambda_imag': 1.0})
-    prob_threshold = 0.99   #probability of pole to belong to cluster, based on estimated "probability" density function
+    pole_clusterer = koma.clustering.PoleClusterer(lambd_stab, phi_stab, orders_stab, min_cluster_size=25,
+                                    min_samples=10, scaling={'mac':1.0, 'lambda_real':1.0, 'lambda_imag': 1.0})
+    prob_threshold = 0.99   #probability of pole to belong to cluster,
+                            # based on estimated "probability" density function
     args = pole_clusterer.postprocess(prob_threshold=prob_threshold, normalize_and_maxreal=True)
 
     xi_auto, omega_n_auto, phi_auto, order_auto, probs_auto, ixs_auto = koma.clustering.group_clusters(*args)
@@ -113,7 +119,8 @@ plt.scatter(np.array(num), np.array(freqs), marker='.', color='grey')
 for i in range(len(true_f)):
     if (i<len(true_f)):
         plt.axhline(y = true_f[i], color = 'r', linestyle = '--')
-    plt.plot(np.arange(0, number_of_realizations), new_freqs[:,i], color=colors[i], linestyle="-", marker=".", label="Est. mode " + str(i+1))
+    plt.plot(np.arange(0, number_of_realizations), new_freqs[:,i], color=colors[i], linestyle="-", marker=".",
+             label="Est. mode " + str(i+1))
 
 plt.grid()
 plt.legend(bbox_to_anchor = (1,1))

@@ -10,8 +10,20 @@ import koma.modal as modal
 
 
 class ModeTrace:
+    """
+    Mode trace object
+    """
     def __init__(self, reference_modes: list[dl.Mode], numb_analysis,
                  simcrit = {'freq': 0.4, 'mac': 0.5}):
+        """
+        Initializes an instance of the ModeComparison class.
+
+        Args:
+            reference_modes (list[dl.Mode]): A list of reference modes to compare against.
+            numb_analysis (int): The number of analysis modes to compare.
+            simcrit (dict, optional): A dictionary specifying the similarity criteria for comparison.
+                Defaults to {'freq': 0.4, 'mac': 0.5}.
+        """
 
         self.reference_modes = {}
         for i, mode in enumerate(reference_modes):
@@ -27,12 +39,23 @@ class ModeTrace:
                           'Vertical', 'Vertical', 'Vertical', 'Torsional', 'Vertical', 'Vertical']
 
     def add_modes_from_period(self, candidate_modes: list[dl.Mode], period: int):
+        """
+        Adds candidate modes to the mode trace for a specific period, based on similarity criteria.
+
+        Args:
+            candidate_modes (list[dl.Mode]): A list of candidate modes to be added.
+            period (int): The period associated with the candidate modes.
+
+        Returns:
+            None
+        """
         candidate_modes = candidate_modes
         f_tol = self.simcrit['freq']
         mac_tol = self.simcrit['mac']
         if len(candidate_modes[0].mode_shape) > 48:
-            indexes = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,40,
-                   41,42,43,44,45,46,47,48,49,50,51,52,53,54,55]
+            indexes = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,20,21,
+                       22,23,24,25,26,27,28,29,30,31,32,33,34,35,40,
+                       41,42,43,44,45,46,47,48,49,50,51,52,53,54,55]
         else:
             indexes = np.arange(0, 48, 1)
 
@@ -57,10 +80,28 @@ class ModeTrace:
                             candidate_modes.append(competitor)
 
     def add_all_modes(self, all_modes):
+        """
+        Adds all modes from a list of modes to the mode trace, corresponding to their respective periods.
+
+        Args:
+            all_modes (list): A list containing modes for each period.
+
+        Returns:
+            None
+        """
         for i in range(len(all_modes)):
             self.add_modes_from_period(all_modes[i], period=i)
 
     def get_frequencies_from_trace(self, trace):
+        """
+        Retrieves the frequencies of modes from a specific trace in the mode trace.
+
+        Args:
+            trace (int): The index of the trace to retrieve frequencies from.
+
+        Returns:
+            list: A list of tuples containing the index and frequency of each mode in the trace.
+        """
         traces = self.mode_trace[trace,:]
 
         freqs = []
@@ -72,6 +113,15 @@ class ModeTrace:
         return freqs
 
     def get_damping_from_trace(self, trace):
+        """
+        Retrieves the damping values of modes from a specific trace in the mode trace.
+
+        Args:
+            trace (int): The index of the trace to retrieve damping values from.
+
+        Returns:
+            list: A list of tuples containing the index and damping value of each mode in the trace.
+        """
         traces = self.mode_trace[trace,:]
 
         damps = []
@@ -83,6 +133,12 @@ class ModeTrace:
         return damps
 
     def plot_frequency_distribution(self):
+        """
+        Plots the frequency distribution of the modes.
+
+        Returns:
+            matplotlib.figure.Figure: The generated figure object.
+        """
         fig, axs = plt.subplots(6, 4, figsize=(20, 20), dpi=300)
         axs = axs.ravel()
         remove = 0
@@ -115,6 +171,12 @@ class ModeTrace:
         return fig
 
     def plot_damping_distribution(self):
+        """
+        Plots the damping distribution of the modes.
+
+        Returns:
+            matplotlib.figure.Figure: The generated figure object.
+        """
         fig, axs = plt.subplots(6, 4, figsize=(20, 25), dpi=300)
         axs = axs.ravel()
         for i, ax in enumerate(axs):
@@ -132,6 +194,15 @@ class ModeTrace:
         return fig
 
     def plot_freq_vs_temp_corr(self, temps):
+        """
+        Plots the correlation between mode frequencies and temperatures.
+
+        Args:
+            temps (numpy.ndarray): Array of temperatures.
+
+        Returns:
+            matplotlib.figure.Figure: The generated figure object.
+        """
         fig, axs = plt.subplots(6, 4, figsize=(20, 25), dpi=300)
         axs = axs.ravel()
         remove = 0
@@ -160,6 +231,7 @@ class ModeTrace:
                              np.mean(freqs_mode) + np.std(freqs_mode) * 5])
                 ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
                 ax.set_ylim([-15, 10])
+                ax.set_xlim([np.min(freqs_mode), np.max(freqs_mode)])
                 text = '$r$ = ' + f"{corr.rvalue:.2f}"
                 ax.text(0.72, 0.95, text, transform=ax.transAxes, fontsize=14, verticalalignment='top',
                         bbox=dict(boxstyle='round', facecolor='white'))
@@ -173,6 +245,15 @@ class ModeTrace:
         return fig
 
     def plot_damp_vs_wind_corr(self, wind):
+        """
+        Plots the correlation between damping and mean wind speed.
+
+        Args:
+            wind (numpy.ndarray): Array of mean wind speeds.
+
+        Returns:
+            matplotlib.figure.Figure: The generated figure object.
+        """
         fig, axs = plt.subplots(6, 4, figsize=(20, 25), dpi=300)
         axs = axs.ravel()
         remove = 0
@@ -213,6 +294,12 @@ class ModeTrace:
         return fig
 
     def plot_AOMA_vs_FEM(self):
+        """
+        Plots the AOMA frequencies versus FEM frequencies for each mode type.
+
+        Returns:
+            matplotlib.figure.Figure: The generated figure object.
+        """
 
         fig, axs = plt.subplots(2, 2, figsize=(10, 10), dpi=300)
 
@@ -270,6 +357,17 @@ class ModeTrace:
 
 
 def plotModeShapeAOMA(tracer: ModeTrace, FEM_loader: dl.FEM_result_loader, type ='Vertical'):
+    """
+    Plots the mode shapes for the given ModeTrace and FEM_result_loader objects.
+
+    Args:
+        tracer (ModeTrace): ModeTrace object containing mode information.
+        FEM_loader (dl.FEM_result_loader): FEM_result_loader object containing FEM results.
+        type (str, optional): Type of mode shape to plot. Defaults to 'Vertical'.
+
+    Returns:
+        fig: The generated matplotlib Figure object.
+    """
 
     all_modeshapes = np.array(np.empty([tracer.mode_trace.shape[0], tracer.mode_trace.shape[1],
                                     len(tracer.mode_trace[0,0].mode_shape)]), dtype=np.float)
@@ -426,6 +524,17 @@ def plotModeShapeAOMA(tracer: ModeTrace, FEM_loader: dl.FEM_result_loader, type 
 
 
 def plotSingleModeAllComponents(tracer: ModeTrace, FEM_loader: dl.FEM_result_loader, mode_i):
+    """
+    Plots the mode shapes of a single mode along with the reference modes.
+
+    Args:
+        tracer (ModeTrace): Object containing the mode trace information.
+        FEM_loader (dl.FEM_result_loader): Object containing FEM results.
+        mode_i (int): Index of the mode to be plotted.
+
+    Returns:
+        fig: Figure object containing the plot.
+    """
 
     all_modeshapes = np.array(np.empty([tracer.mode_trace.shape[0], tracer.mode_trace.shape[1],
                                     len(tracer.mode_trace[0,0].mode_shape)]), dtype=np.float)
@@ -476,14 +585,7 @@ def plotSingleModeAllComponents(tracer: ModeTrace, FEM_loader: dl.FEM_result_loa
         ax.set_yticks([-1, -0.5, 0, 0.5, 1])
         ax.vlines([-420, -300, -180, -100, 0, 100, 260, 420], -1, 1, color='grey',
                                                 linestyles=':', alpha=0.5)
-    """
-    factor = 1 / np.max(np.abs(phi_y_FEM[:, mode_i]))
-    axs[0].plot(x_FEM, phi_y_FEM[:, mode_i] * factor, color='black', alpha=0.5)
-    factor = 1 / np.max(np.abs(phi_z_FEM[:, mode_i]))
-    axs[1].plot(x_FEM, phi_z_FEM[:, mode_i] * factor, color='black', alpha=0.5)
-    factor = 1 / np.max(np.abs(phi_t_FEM[:, mode_i]))
-    axs[2].plot(x_FEM, phi_t_FEM[:, mode_i] * factor, color='black', alpha=0.5)
-    """
+
 
     for a in range(all_modeshapes.shape[1]):
 
@@ -513,27 +615,10 @@ def plotSingleModeAllComponents(tracer: ModeTrace, FEM_loader: dl.FEM_result_loa
         factor = 1 / np.max(np.abs(phi_z[:, mode_i]))
         factor_ref = 1 / np.max(np.abs(phi_z_ref[:, mode_i]))
 
-        #if np.sum(np.abs(phi_z[:, mode_i] - phi_z_ref[:, mode_i]*factor_ref)) > 5.0:
-        #    phi_z[:, mode_i] = phi_z[:, mode_i]*(-1)
-
         axs[1].plot(x, np.concatenate((np.array([0]), phi_z[:, mode_i], np.array([0])))
                                             , color='tab:blue', alpha = 0.05)
         axs[1].set_title(
             'Mode ' + str(mode_i + 1) + ' - ' + 'Vertical component')
-
-        """
-                # Torsional component
-        factor = 1 / np.max(np.abs(phi_t[:, mode_i]))
-        factor_ref = 1 / np.max(np.abs(phi_t_ref[:, mode_i]))
-
-        if np.sum(np.abs(phi_t[:, mode_i] - phi_t_ref[:, mode_i]*factor_ref)) > 4.0:
-            phi_t[:, mode_i] = phi_t[:, mode_i]*(-1)
-
-        axs[2].plot(x, np.concatenate((np.array([0]), phi_t[:, mode_i], np.array([0])))
-                                            , color='tab:orange', alpha = 0.05)
-        axs[2].set_title(
-            'Mode ' + str(mode_i + 1) + ' - ' + 'Torsional component')
-        """
 
 
     fig.tight_layout()

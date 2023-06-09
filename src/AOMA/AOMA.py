@@ -1,6 +1,5 @@
 import numpy as np
 import h5py
-import matplotlib.pyplot as plt
 import src.AOMA.dataloader as dl
 from src.AOMA.plot import stabilization_diagram
 import os
@@ -10,6 +9,8 @@ import strid
 from time import time
 from datetime import datetime, timedelta
 import warnings
+
+# This is the main script for running AOMA on vibration data from the Hålogaland bridge
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 warnings.filterwarnings('ignore', category=RuntimeWarning)
@@ -102,6 +103,7 @@ for period in range(number_of_periods-44):
                 lambdas.append(np.array(lambdas_in_order))
                 phis.append(np.array(phis_in_order).transpose())
 
+            # Stabilization analysis
             lambd_stab, phi_stab, orders_stab, idx_stab = koma.oma.find_stable_poles(lambdas, phis, orders, s,
                                     stabcrit=stabcrit, valid_range={'freq': [0.05, np.inf], 'damping':[0, 0.2]},
                                     indicator='freq', return_both_conjugates=False)
@@ -135,7 +137,7 @@ for period in range(number_of_periods-44):
 
 
 
-            # Load wind statistical data for analyzed time series
+            # Load environmental statistical data for analyzed time series
             mean_wind_speed, max_wind_speed, mean_wind_direction = loader.load_wind_stat_data(loader.periods[period],
                                                                                               analysis_length, j)
             mean_temp = loader.load_temp_stat_data(loader.periods[period], analysis_length, j)
@@ -150,9 +152,9 @@ for period in range(number_of_periods-44):
                          timedelta(minutes=j*analysis_length)).strftime("%Y-%m-%d-%H-%M-%S")
 
             # Save stabilization plot
-            stab_diag = stabilization_diagram(acc[j], fs, 2, (np.array(omega_n_auto) / 2 / np.pi), np.array(order_auto),
+            stab_diag = stabilization_diagram(acc[j], fs, 2, (np.array(omega_n_auto) / 2 / np.pi),
+                                              np.array(order_auto),
                                               all_freqs=np.abs(lambd_stab) / 2 / np.pi, all_orders=orders_stab)
-            #plt.savefig(os.getcwd() + "/../../../stab_diag/10min/stabilization_diagram_" + str(timestamp) + ".jpg")
 
             # Write logs to h5 file
             with h5py.File(output_path, 'a') as hdf:

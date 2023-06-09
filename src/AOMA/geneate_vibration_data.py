@@ -20,7 +20,7 @@ def generate_data(num_stories: int, path: str):
     # Determine the time discretization and period
     Tmax = 1. / strid.w2f(sf.get_natural_frequency(1))
     fmax = strid.w2f(sf.get_natural_frequency(sf.n))
-    T = 1000 * Tmax
+    T = 100 * Tmax
     fs = 5 * fmax
     t = np.arange(0., T, 1 / fs)
 

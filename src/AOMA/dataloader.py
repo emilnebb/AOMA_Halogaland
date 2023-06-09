@@ -10,6 +10,22 @@ class HDF5_dataloader:
     """
 
     def __init__(self, path: str, bridgedeck_only: bool):
+        """
+        Initializes an instance of the class.
+
+        Args:
+            path (str): The path to the HDF5 file.
+            bridgedeck_only (bool): Specifies whether to consider only bridge deck sensors.
+
+        Attributes:
+            path (str): The path to the HDF5 file.
+            data_types (list): The list of data types available in the HDF5 file.
+            hdf5_file (h5py.File): The HDF5 file object.
+            periods (list): The list of periods in the HDF5 file.
+            acceleration_sensors (list): The list of acceleration sensors.
+            wind_sensors (list): The list of wind sensors.
+            temp_sensors (list): The list of temperature sensors.
+        """
 
         self.path = path
         self.data_types = None
@@ -37,7 +53,20 @@ class HDF5_dataloader:
 
     def load_acceleration(self, period: str, sensor: str, axis: str, preprosess=False, cutoff_frequency = None,
                           filter_order=None):
-        # TODO: write function description
+        """
+        Loads acceleration data from the HDF5 file.
+
+        Args:
+            period (str): The period of data to load.
+            sensor (str): The sensor from which to load the data.
+            axis (str): The axis of acceleration data to load.
+            preprosess (bool, optional): Flag to enable data preprocessing. Defaults to False.
+            cutoff_frequency (float, optional): The cutoff frequency for low-pass filtering. Defaults to None.
+            filter_order (int, optional): The order of the filter for low-pass filtering. Defaults to None.
+
+        Returns:
+            np.ndarray: The loaded acceleration data.
+        """
 
         acc_data = self.hdf5_file[period][self.data_types[0]][sensor][axis]
 
@@ -49,7 +78,19 @@ class HDF5_dataloader:
         return acc_data
 
     def load_all_acceleration_data(self, period: str, preprosess=False, cutoff_frequency = None, filter_order=None):
-        #TODO: write function description
+        """
+        Loads all acceleration data for a given period.
+
+        Args:
+            period (str): The period of data to load.
+            preprosess (bool, optional): Flag to enable data preprocessing. Defaults to False.
+            cutoff_frequency (float, optional): The cutoff frequency for low-pass filtering. Defaults to None.
+            filter_order (int, optional): The order of the filter for low-pass filtering. Defaults to None.
+
+        Returns:
+            Union[np.ndarray, bool]: The loaded acceleration data as a matrix,
+            or False if all channels are not included.
+        """
 
         #Check if all channels are included
         if not set(self.acceleration_sensors).issubset(list(self.hdf5_file[period][self.data_types[0]].keys())):
@@ -74,7 +115,16 @@ class HDF5_dataloader:
         return acc_matrix
 
     def load_wind(self, period: str, sensor: str):
-        #TODO: write function descritpion
+        """
+        Loads wind measurements for a given period and sensor.
+
+        Args:
+            period (str): The period of data to load.
+            sensor (str): The sensor from which to load the data.
+
+        Returns:
+            Tuple[np.ndarray, np.ndarray]: Tuple containing wind magnitude and wind direction arrays.
+        """
 
         #Wind measurements has a 32 Hz sampling rate
 
@@ -84,14 +134,22 @@ class HDF5_dataloader:
         return wind_magnitude, wind_direction
 
     def load_wind_stat_data(self, period: str, timeseries_length: int, timeseries_num: int):
-        #TODO: write function description
+        """
+        Loads wind statistical data for a given period and time series.
+
+        Args:
+            period (str): The period of data to load.
+            timeseries_length (int): The length of each time series in minutes.
+            timeseries_num (int): The index of the time series.
+
+        Returns:
+            Union[Tuple[float, float, float], bool]: Tuple containing mean wind speed, max wind speed,
+            and mean wind direction, or False if all channels are not included.
+        """
 
         # Check if all channels are included
         if not set(self.wind_sensors).issubset(list(self.hdf5_file[period]['wind'].keys())):
             return False
-
-        #Make an assumption that wind sensor at mid span of the bridge makes up a fairly good representation
-        #of the overall wind magnitude along the bridge span
 
         wind_magnitude, wind_direction = self.load_wind(period, 'W07-28-1')
 
@@ -108,7 +166,16 @@ class HDF5_dataloader:
         return mean_wind_speed, max_wind_speed, mean_wind_direction
 
     def load_temp(self, period: str, sensor: str):
-        #TODO: write function description
+        """
+        Loads temperature measurements for a given period and sensor.
+
+        Args:
+            period (str): The period of data to load.
+            sensor (str): The sensor from which to load the data.
+
+        Returns:
+            np.ndarray: Array containing temperature data.
+        """
 
         #Temperature measurements has a 0.25 Hz sampling rate
 
@@ -117,7 +184,18 @@ class HDF5_dataloader:
         return temp_data
 
     def load_temp_stat_data(self, period: str, timeseries_length: int, timeseries_num: int):
-        # TODO: write function description
+        """
+        Loads temperature statistical data for a given period and time series.
+
+        Args:
+            period (str): The period of data to load.
+            timeseries_length (int): The length of each time series in minutes.
+            timeseries_num (int): The index of the time series.
+
+        Returns:
+            Union[float, bool]: The mean temperature for the specified time series,
+            or False if all channels are not included.
+        """
 
         # Check if all channels are included
         if not set(self.temp_sensors).issubset(list(self.hdf5_file[period]['temperature'].keys())):
@@ -135,7 +213,9 @@ class HDF5_dataloader:
         return mean_temp
 
 class Mode:
-    # TODO: write class description
+    """
+    Mode class
+    """
     def __init__(self, frequency, mode_shape, damping=None, mode_type=None):
         self.frequency = frequency
         self.damping = damping
@@ -151,13 +231,33 @@ class HDF5_result_loader:
     """
 
     def __init__(self, path: str):
+        """
+        Initializes an instance of the class.
+
+        Args:
+            path (str): The path to the HDF5 file.
+
+        Attributes:
+            path (str): The path to the HDF5 file.
+            hdf5_file (h5py.File): The HDF5 file object.
+            periods (list): The list of periods in the HDF5 file.
+            features (list): The list of features available in the HDF5 file.
+        """
         self.path = path
         self.hdf5_file = h5py.File(self.path, 'r')
         self.periods = list(self.hdf5_file.keys())
         self.features = ['Damping', 'Frequencies', 'Modeshape']
 
     def get_modes_in_period(self, period):
-        # TODO: write function description
+        """
+        Retrieves the modes present in a specific period.
+
+        Args:
+            period (str): The period from which to retrieve the modes.
+
+        Returns:
+            List[Mode]: A list of Mode objects representing the modes in the specified period.
+        """
 
         freqs = np.array(self.hdf5_file[period]['Frequencies'])
         dampings = np.array(self.hdf5_file[period]['Damping'])
@@ -172,7 +272,12 @@ class HDF5_result_loader:
         return modes_in_period
 
     def get_modes_all_periods(self):
-        # TODO: write function description
+        """
+        Retrieves the modes for all periods.
+
+        Returns:
+            List[List[Mode]]: A nested list of Mode objects representing the modes in each period.
+        """
 
         all_modes = []
 
@@ -182,7 +287,15 @@ class HDF5_result_loader:
         return all_modes
 
     def get_statistics(self):
-        # TODO: write function description
+        """
+        Retrieves statistics for each period.
+
+        Returns:
+            Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+            A tuple containing arrays of temperatures, mean wind speeds, max wind speeds,
+            mean wind directions, and execution times for each period.
+        """
+
         temps = []
         mean_wind_speed = []
         max_wind_speed = []
@@ -205,7 +318,14 @@ class HDF5_result_loader:
         return temps, mean_wind_speed, max_wind_speed, mean_wind_direction, execution_time
 
     def get_detection_statistics(self):
-        # TODO: write function description
+        """
+        Retrieves detection statistics for the estimated modes in each period.
+
+        Returns:
+            Tuple[Dict[str, float], matplotlib.figure.Figure]: A tuple containing a dictionary with average,
+            standard deviation, maximum, and minimum values of the number of estimated modes,
+            and the matplotlib Figure object of the histogram.
+        """
 
         modes_in_period = []
 
@@ -223,16 +343,50 @@ class HDF5_result_loader:
         ax.set_xticks(np.arange(min, max+1, step=2))
         ax.set_xlabel('Number of estimated modes in time series')
         ax.set_ylabel('Number of time series')
-        #plt.grid()
+        plt.grid()
+
         ax.xaxis.set_major_locator(plt.MultipleLocator(2))
         ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
-
 
         return {'avg': avg, 'std': std, 'max': max, 'min': min}, fig
 
 class FEM_result_loader:
+    """
+    A dataloader specified to load modal parameters obtained from a FE-model created in Abaqus and
+    exported to a h5 file format.
+    """
+
 
     def __init__(self, path: str):
+        """
+          Initializes an instance of the class.
+
+          Args:
+              path (str): The path to the HDF5 file.
+
+          Attributes:
+              path (str): The path to the HDF5 file.
+              hf (h5py.File): The HDF5 file object.
+              deck_modes_idx (np.array): The indices of the manually picked bridge deck modes from the Abaqus model.
+              mode_type (list): The type of each mode.
+              sensor_labels (list): The labels of the sensors.
+              phi_label_temp (np.array): Temporary array of phi labels.
+              phi_label (list): The phi labels.
+              sensor_indexes (list): Indexes of the sensor labels in phi_label.
+              f (np.array): Frequencies of the deck modes.
+              phi (np.array): Mode shapes of the deck modes.
+              nodecoord (np.array): Node coordinates.
+              node_deck (np.array): Array of node indexes in the bridge deck.
+              index_node_deck (list): List index of nodes in the bridge deck.
+              nodecoord_deck (np.array): Node coordinates of the bridge deck.
+              index_y (list): List of indexes of y-DOFs in the bridge deck.
+              index_z (list): List of indexes of z-DOFs in the bridge deck.
+              index_t (list): List of indexes of t-DOFs in the bridge deck.
+              phi_y (np.array): Mode shapes corresponding to y-DOFs.
+              phi_z (np.array): Mode shapes corresponding to z-DOFs.
+              phi_t (np.array): Mode shapes corresponding to t-DOFs.
+              x_plot (np.array): x-coordinates of deck nodes.
+          """
         self.path = path
         self.hf = h5py.File(self.path, 'r')
 
@@ -301,6 +455,12 @@ class FEM_result_loader:
         self.x_plot = nodecoord_deck[:, 1]  # x-coordinate of deck nodes
 
     def get_all_modes(self):
+        """
+        Retrieves all modes from the HDF5 file.
+
+        Returns:
+            list: A list of Mode objects representing the modes.
+        """
 
         modes = []
 
