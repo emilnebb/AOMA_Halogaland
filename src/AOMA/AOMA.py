@@ -16,12 +16,12 @@ warnings.filterwarnings('ignore', category=RuntimeWarning)
 
 analysis_length = 30  # minutes
 cutoff_frequency = 1  # Hz
-bridgedeck_only = False
+bridgedeck_only = True
 
 loader = dl.HDF5_dataloader(os.getcwd()+'/../../../../../../../Volumes/LaCie/Halogaland_sixth_try.hdf5',
                             bridgedeck_only=bridgedeck_only)
 
-output_path = os.getcwd() + '/../../output/logs/output_AOMA_hangers.h5'
+output_path = os.getcwd() + '/../../output/logs/output_AOMA_normal.h5'
 
 # Hyperparameters
 i = 50  # number of block rows
@@ -76,14 +76,13 @@ for period in range(number_of_periods-44):
     # if not, move to the next period
     if isinstance(acc, np.ndarray):
         acc = np.array_split(acc, acc.shape[0]/number_in_sample)
-        #print(len(acc))
 
         for j in range(len(acc)):
 
             t0 = time()  # Start timer of computation process
 
             # Cov-SSI
-            ssid = strid.CovarianceDrivenStochasticSID(acc[j].transpose(), fs, ix_references)
+            ssid = strid.CovarianceDrivenStochasticSID(acc[j].transpose(), fs) #, ix_references)
             modes = {}
             for order in orders:
                 A, C, G, R0 = ssid.perform(order, i)
@@ -153,7 +152,7 @@ for period in range(number_of_periods-44):
             # Save stabilization plot
             stab_diag = stabilization_diagram(acc[j], fs, 2, (np.array(omega_n_auto) / 2 / np.pi), np.array(order_auto),
                                               all_freqs=np.abs(lambd_stab) / 2 / np.pi, all_orders=orders_stab)
-            plt.savefig("/../../../stab_diag/hangers/stabilization_diagram_" + str(timestamp) + ".jpg")
+            #plt.savefig(os.getcwd() + "/../../../stab_diag/10min/stabilization_diagram_" + str(timestamp) + ".jpg")
 
             # Write logs to h5 file
             with h5py.File(output_path, 'a') as hdf:
