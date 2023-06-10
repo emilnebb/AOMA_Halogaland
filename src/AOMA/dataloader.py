@@ -50,8 +50,7 @@ class HDF5_dataloader:
                              'T05-2', 'T06-1', 'T06-2', 'T07-1', 'T07-2', 'T08-1', 'T08-2', 'T09-1', 'T09-2',
                              'T10-1', 'T10-2', 'T11-1', 'T11-2']
 
-
-    def load_acceleration(self, period: str, sensor: str, axis: str, preprosess=False, cutoff_frequency = None,
+    def load_acceleration(self, period: str, sensor: str, axis: str, preprosess=False, cutoff_frequency=None,
                           filter_order=None):
         """
         Loads acceleration data from the HDF5 file.
@@ -73,11 +72,11 @@ class HDF5_dataloader:
         if preprosess:
             sampling_rate = self.hdf5_file[period][self.data_types[0]][sensor].attrs['samplerate']
             filtered_acc = low_pass(acc_data - np.mean(acc_data), sampling_rate, cutoff_frequency, filter_order)
-            acc_data = downsample(sampling_rate, filtered_acc, cutoff_frequency*2)
+            acc_data = downsample(sampling_rate, filtered_acc, cutoff_frequency * 2)
 
         return acc_data
 
-    def load_all_acceleration_data(self, period: str, preprosess=False, cutoff_frequency = None, filter_order=None):
+    def load_all_acceleration_data(self, period: str, preprosess=False, cutoff_frequency=None, filter_order=None):
         """
         Loads all acceleration data for a given period.
 
@@ -92,7 +91,7 @@ class HDF5_dataloader:
             or False if all channels are not included.
         """
 
-        #Check if all channels are included
+        # Check if all channels are included
         if not set(self.acceleration_sensors).issubset(list(self.hdf5_file[period][self.data_types[0]].keys())):
             return False
 
@@ -126,7 +125,7 @@ class HDF5_dataloader:
             Tuple[np.ndarray, np.ndarray]: Tuple containing wind magnitude and wind direction arrays.
         """
 
-        #Wind measurements has a 32 Hz sampling rate
+        # Wind measurements has a 32 Hz sampling rate
 
         wind_magnitude = np.array(self.hdf5_file[period]['wind'][sensor]['magnitude'])
         wind_direction = np.array(self.hdf5_file[period]['wind'][sensor]['direction'])
@@ -155,10 +154,10 @@ class HDF5_dataloader:
 
         fs = self.hdf5_file[period]['wind']['W07-28-1'].attrs['samplerate']
 
-        time_series_wind_magnitude = wind_magnitude[timeseries_num*timeseries_length*fs*60:(timeseries_num+1)
-                                                                                      *timeseries_length*fs*60]
-        time_series_wind_direction = wind_direction[timeseries_num*timeseries_length*fs*60:(timeseries_num+1)
-                                                                                      *timeseries_length*fs*60]
+        time_series_wind_magnitude = wind_magnitude[timeseries_num * timeseries_length * fs * 60:(timeseries_num + 1)
+                                                                                                 * timeseries_length * fs * 60]
+        time_series_wind_direction = wind_direction[timeseries_num * timeseries_length * fs * 60:(timeseries_num + 1)
+                                                                                                 * timeseries_length * fs * 60]
         mean_wind_speed = np.mean(time_series_wind_magnitude)
         max_wind_speed = np.max(time_series_wind_magnitude)
         mean_wind_direction = np.mean(time_series_wind_direction)
@@ -177,7 +176,7 @@ class HDF5_dataloader:
             np.ndarray: Array containing temperature data.
         """
 
-        #Temperature measurements has a 0.25 Hz sampling rate
+        # Temperature measurements has a 0.25 Hz sampling rate
 
         temp_data = np.array(self.hdf5_file[period]['temperature'][sensor]['x'])
 
@@ -201,21 +200,24 @@ class HDF5_dataloader:
         if not set(self.temp_sensors).issubset(list(self.hdf5_file[period]['temperature'].keys())):
             return False
 
-        #Pick one temp sensor to collect data from
+        # Pick one temp sensor to collect data from
         all_temp_data = self.load_temp(period, 'T07-1')
 
         fs = self.hdf5_file[period]['temperature']['T07-1'].attrs['samplerate']
 
         time_series_temp_data = all_temp_data[timeseries_num * timeseries_length * int(fs * 60):(timeseries_num + 1)
-                                                                                * timeseries_length * int(fs * 60)]
+                                                                                                * timeseries_length * int(
+            fs * 60)]
         mean_temp = np.mean(time_series_temp_data)
 
         return mean_temp
+
 
 class Mode:
     """
     Mode class
     """
+
     def __init__(self, frequency, mode_shape, damping=None, mode_type=None):
         self.frequency = frequency
         self.damping = damping
@@ -339,8 +341,8 @@ class HDF5_result_loader:
         std = np.std(modes_in_period)
 
         fig, ax = plt.subplots(figsize=(6, 4), dpi=300)
-        ax.hist(modes_in_period, max-min)
-        ax.set_xticks(np.arange(min, max+1, step=2))
+        ax.hist(modes_in_period, max - min)
+        ax.set_xticks(np.arange(min, max + 1, step=2))
         ax.set_xlabel('Number of estimated modes in time series')
         ax.set_ylabel('Number of time series')
         plt.grid()
@@ -350,12 +352,12 @@ class HDF5_result_loader:
 
         return {'avg': avg, 'std': std, 'max': max, 'min': min}, fig
 
+
 class FEM_result_loader:
     """
     A dataloader specified to load modal parameters obtained from a FE-model created in Abaqus and
     exported to a h5 file format.
     """
-
 
     def __init__(self, path: str):
         """
@@ -392,7 +394,7 @@ class FEM_result_loader:
 
         # manually picked bridge deck modes from Abaqus model
         self.deck_modes_idx = np.array([1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 16, 19, 23, 25, 32, 33,
-                                   34, 40, 45, 48, 50, 58]) - 1
+                                        34, 40, 45, 48, 50, 58]) - 1
 
         self.mode_type = ['Horizontal', 'Vertical', 'Horizontal', 'Vertical', 'Vertical',
                           'Vertical', 'Horizontal', 'Cable', 'Vertical', 'Vertical', 'Horizontal',
@@ -400,17 +402,17 @@ class FEM_result_loader:
                           'Vertical', 'Vertical', 'Vertical', 'Torsional', 'Vertical', 'Vertical']
 
         self.sensor_labels = ['3080_U1', '2080_U1', '3140_U1', '2140_U1', '3200_U1',
-                                 '2200_U1', '3240_U1', '2240_U1', '3290_U1', '2290_U1',
-                                 '3340_U1', '2340_U1', '3420_U1', '2420_U1', '3500_U1',
-                                 '2500_U1', 
-                                 '3080_U2', '2080_U2', '3140_U2', '2140_U2', '3200_U2',
-                                 '2200_U2', '3240_U2', '2240_U2', '3290_U2', '2290_U2',
-                                 '3340_U2', '2340_U2', '3420_U2', '2420_U2', '3500_U2',
-                                 '2500_U2',
-                                 '3080_U3', '2080_U3', '3140_U3', '2140_U3', '3200_U3',
-                                 '2200_U3', '3240_U3', '2240_U3', '3290_U3', '2290_U3',
-                                 '3340_U3', '2340_U3', '3420_U3', '2420_U3', '3500_U3',
-                                 '2500_U3']
+                              '2200_U1', '3240_U1', '2240_U1', '3290_U1', '2290_U1',
+                              '3340_U1', '2340_U1', '3420_U1', '2420_U1', '3500_U1',
+                              '2500_U1',
+                              '3080_U2', '2080_U2', '3140_U2', '2140_U2', '3200_U2',
+                              '2200_U2', '3240_U2', '2240_U2', '3290_U2', '2290_U2',
+                              '3340_U2', '2340_U2', '3420_U2', '2420_U2', '3500_U2',
+                              '2500_U2',
+                              '3080_U3', '2080_U3', '3140_U3', '2140_U3', '3200_U3',
+                              '2200_U3', '3240_U3', '2240_U3', '3290_U3', '2290_U3',
+                              '3340_U3', '2340_U3', '3420_U3', '2420_U3', '3500_U3',
+                              '2500_U3']
 
         phi_label_temp = np.array(self.hf.get('phi_label'))
         phi_label = phi_label_temp[:].astype('U10').ravel().tolist()
@@ -469,4 +471,3 @@ class FEM_result_loader:
             modes.append(mode)
 
         return modes
-

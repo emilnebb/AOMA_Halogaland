@@ -110,12 +110,13 @@ for period in range(number_of_periods-44):
 
             # HDBSCAN
             pole_clusterer = koma.clustering.PoleClusterer(lambd_stab, phi_stab, orders_stab,
-                                                           min_cluster_size=min_cluster_size,
-                                            min_samples=min_samples, scaling=scaling)
+                            min_cluster_size=min_cluster_size,
+                            min_samples=min_samples, scaling=scaling)
 
             args = pole_clusterer.postprocess(prob_threshold=prob_threshold, normalize_and_maxreal=True)
 
-            xi_auto, omega_n_auto, phi_auto, order_auto, probs_auto, ixs_auto = koma.clustering.group_clusters(*args)
+            xi_auto, omega_n_auto, phi_auto, order_auto, probs_auto, ixs_auto = \
+                koma.clustering.group_clusters(*args)
 
             xi_mean = np.array([np.median(xi_i) for xi_i in xi_auto])
             fn_mean = np.array([np.median(om_i) for om_i in omega_n_auto])/2/np.pi
@@ -138,8 +139,8 @@ for period in range(number_of_periods-44):
 
 
             # Load environmental statistical data for analyzed time series
-            mean_wind_speed, max_wind_speed, mean_wind_direction = loader.load_wind_stat_data(loader.periods[period],
-                                                                                              analysis_length, j)
+            mean_wind_speed, max_wind_speed, mean_wind_direction = \
+                loader.load_wind_stat_data(loader.periods[period], analysis_length, j)
             mean_temp = loader.load_temp_stat_data(loader.periods[period], analysis_length, j)
 
             t1 = time()  # end timer of computation process

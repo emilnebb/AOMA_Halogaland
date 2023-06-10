@@ -1,18 +1,19 @@
 import numpy as np
 import strid
 
+
 def generate_data(num_stories: int, path: str):
     """
-    Generating random vibration data for a shear fram of num_storeys storeys.
-    Based on example notebook "00-generating-data.ipynb".
-    Parameters
-    ----------
-    num_stories: int
-    path: str of path to save the data
-    Returns
-    -------
-    Saves data to file.
+    Generate simulated data for a shear frame system and save it to a file.
+
+    Args:
+        num_stories (int): The number of stories in the shear frame system.
+        path (str): The path where the generated data will be saved.
+
+    Returns:
+        None
     """
+
     # Create a shear frame
     sf = strid.utils.ShearFrame(num_stories, 1e3, 1e4)
     sf.set_rayleigh_damping_matrix([sf.get_natural_frequency(1), sf.get_natural_frequency(sf.n)], [.05] * 2)

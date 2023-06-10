@@ -152,13 +152,10 @@ class ModeTrace:
                 freqs_mode = np.array(list(zip(*freqs))[1])
                 ax.hist(freqs_mode, 20, label='AOMA')
                 ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.3f'))
-                #ax.vlines(self.reference_modes[i].frequency, 0, 250, color='red', linestyles='dashed', \
-                # label='FEM')
                 text = 'n = ' + str(len(freqs_mode)) + '\nr = ' + \
                        f"{(100*len(freqs_mode)/self.numb_analysis):.1f}" + '%'
                 ax.text(0.72, 0.95, text, transform=ax.transAxes, fontsize=14, verticalalignment='top',
                         bbox= dict(boxstyle='round', facecolor='white'))
-                #ax.legend(loc='upper left')
             else:
                 remove += 1
                 continue

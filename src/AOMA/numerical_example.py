@@ -31,9 +31,7 @@ for j in range(number_of_realizations):
 
     data = np.load(path + str(j) + ".npz")
     y = data["y"]
-    #print(y.shape)
     fs = data["fs"]
-    #print(fs)
     true_f = data["true_frequencies"].transpose()
     true_xi = data["true_damping"].transpose()
     true_modeshapes = data["true_modeshapes"].transpose()
@@ -85,6 +83,17 @@ new_freqs = np.empty(shape=[number_of_realizations, len(true_f)], dtype=object)
 
 
 def remove_and_return_min_distance(lst, reference):
+    """
+    Removes and returns the element in the list `lst` that has the minimum absolute difference with `reference`.
+
+    Args:
+        lst (list): A list of elements.
+        reference (float): The reference value to compare against.
+
+    Returns:
+        The element with the minimum absolute difference with `reference`, if it exists and the absolute difference is less than 0.03.
+        None, if no such element exists or the absolute difference is greater than or equal to 0.03.
+    """
     min_element = min(lst, key=lambda x: abs(x - reference), default="EMPTY")
     if min_element in lst and abs(min_element-reference)<0.03:
         lst.remove(min_element)
@@ -92,7 +101,6 @@ def remove_and_return_min_distance(lst, reference):
     else:
         return None
 
-#preallocating vector for sorted frequencies
 new_freqs = np.array(np.empty(shape=[number_of_realizations, len(true_f)], dtype=object), dtype=np.float)
 candidates = copy.deepcopy(freq_modes)
 
